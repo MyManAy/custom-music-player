@@ -48,13 +48,13 @@ export const getAccessToken = handler(async (pageWindow: Window) => {
     await refreshToken(pageWindow);
   }
 
-  // If there is a valid access token in localStorage, use that
-  if (
-    LOCALSTORAGE_VALUES.accessToken &&
-    LOCALSTORAGE_VALUES.accessToken !== "undefined"
-  ) {
-    return LOCALSTORAGE_VALUES.accessToken;
-  }
+  // // If there is a valid access token in localStorage, use that
+  // if (
+  //   LOCALSTORAGE_VALUES.accessToken &&
+  //   LOCALSTORAGE_VALUES.accessToken !== "undefined"
+  // ) {
+  //   return LOCALSTORAGE_VALUES.accessToken;
+  // }
 
   // If there is a token in the URL query params, user is logging in for the first time
   if (queryParams[LOCALSTORAGE_KEYS.accessToken]) {
@@ -127,7 +127,7 @@ export const refreshToken = handler(async (pageWindow: Window) => {
     );
     pageWindow.localStorage.setItem(
       LOCALSTORAGE_KEYS.timestamp,
-      Date.now().toString()
+      Date.now() as unknown as string
     );
 
     // Reload the page for localStorage updates to be reflected
@@ -153,25 +153,24 @@ export const logout = handler((pageWindow: Window) => {
   pageWindow.location = pageWindow.location.origin as unknown as Location;
 });
 
-const setAxios = handler((pageWindow: Window) => {
+const setAxios = handler(async (pageWindow: Window) => {
   axios.defaults.baseURL = "https://api.spotify.com/v1";
-  axios.defaults.headers["Authorization"] = `Bearer ${
-    getAccessToken(pageWindow) as unknown as string
-  }`;
+  const accessToken = (await getAccessToken(pageWindow)) as string;
+  axios.defaults.headers["Authorization"] = `Bearer ${accessToken}`;
   axios.defaults.headers["Content-Type"] = "application/json";
 });
 
-const getAxios = handler((pageWindow: Window) => {
-  setAxios(pageWindow);
+const getAxios = handler(async (pageWindow: Window) => {
+  await setAxios(pageWindow);
   return axios;
 });
 
 export const getSpotifyClient = getAxios;
 
-// export const getPlaylistTracks = (playlistId: string, offset: number) =>
-//   axios.get(
-//     `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}`
-//   );
+export const getPlaylistTracks = (playlistId: string, offset: number) =>
+  axios.get(
+    `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}`
+  );
 
-// export const getPlaylists = () =>
-//   axios.get(`https://api.spotify.com/v1/me/playlists`);
+export const getPlaylists = () =>
+  axios.get(`https://api.spotify.com/v1/me/playlists`);
