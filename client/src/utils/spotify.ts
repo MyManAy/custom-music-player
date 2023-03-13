@@ -9,20 +9,28 @@ const LOCALSTORAGE_KEYS = {
   timestamp: "spotify_token_timestamp",
 };
 
+const handler =
+  <T>(func: (arg0: Window) => T) =>
+  (pageWindow: unknown) => {
+    const _pageWindow = pageWindow as Window;
+    return func(_pageWindow);
+  };
+
 // Map to retrieve localStorage values
-const LOCALSTORAGE_VALUES = {
-  accessToken: window.localStorage.getItem(LOCALSTORAGE_KEYS.accessToken),
-  refreshToken: window.localStorage.getItem(LOCALSTORAGE_KEYS.refreshToken),
-  expireTime: window.localStorage.getItem(LOCALSTORAGE_KEYS.expireTime),
-  timestamp: window.localStorage.getItem(LOCALSTORAGE_KEYS.timestamp),
-};
+const GET_LOCALSTORAGE_VALUES = handler((pageWindow) => ({
+  accessToken: pageWindow.localStorage.getItem(LOCALSTORAGE_KEYS.accessToken),
+  refreshToken: pageWindow.localStorage.getItem(LOCALSTORAGE_KEYS.refreshToken),
+  expireTime: pageWindow.localStorage.getItem(LOCALSTORAGE_KEYS.expireTime),
+  timestamp: pageWindow.localStorage.getItem(LOCALSTORAGE_KEYS.timestamp),
+}));
 /**
  * Handles logic for retrieving the Spotify access token from localStorage
  * or URL query params
  * @returns {string} A Spotify access token
  */
-export const getAccessToken = async () => {
-  const queryString = window.location.search;
+export const getAccessToken = handler(async (pageWindow: Window) => {
+  const LOCALSTORAGE_VALUES = GET_LOCALSTORAGE_VALUES(pageWindow);
+  const queryString = pageWindow.location.search;
   const urlParams = new URLSearchParams(queryString);
   const queryParams = {
     [LOCALSTORAGE_KEYS.accessToken]: urlParams.get("access_token"),
@@ -34,10 +42,10 @@ export const getAccessToken = async () => {
   // If there's an error OR the token in localStorage has expired, refresh the token
   if (
     hasError ||
-    hasTokenExpired() ||
+    hasTokenExpired(pageWindow) ||
     LOCALSTORAGE_VALUES.accessToken === "undefined"
   ) {
-    await refreshToken();
+    await refreshToken(pageWindow);
   }
 
   // If there is a valid access token in localStorage, use that
@@ -52,10 +60,10 @@ export const getAccessToken = async () => {
   if (queryParams[LOCALSTORAGE_KEYS.accessToken]) {
     // Store the query params in localStorage
     for (const property in queryParams) {
-      window.localStorage.setItem(property, queryParams[property]!);
+      pageWindow.localStorage.setItem(property, queryParams[property]!);
     }
     // Set timestamp
-    window.localStorage.setItem(
+    pageWindow.localStorage.setItem(
       LOCALSTORAGE_KEYS.timestamp,
       Date.now().toString()
     );
@@ -65,28 +73,30 @@ export const getAccessToken = async () => {
 
   // We should never get here!
   return false;
-};
+});
 
 /**
  * Checks if the amount of time that has elapsed between the timestamp in localStorage
  * and now is greater than the expiration time of 3600 seconds (1 hour).
  * @returns {boolean} Whether or not the access token in localStorage has expired
  */
-export const hasTokenExpired = () => {
+export const hasTokenExpired = handler((pageWindow: Window) => {
+  const LOCALSTORAGE_VALUES = GET_LOCALSTORAGE_VALUES(pageWindow);
   const { accessToken, timestamp, expireTime } = LOCALSTORAGE_VALUES;
   if (!accessToken || !timestamp) {
     return false;
   }
   const millisecondsElapsed = Date.now() - Number(timestamp);
   return millisecondsElapsed / 1000 > Number(expireTime);
-};
+});
 
 /**
  * Use the refresh token in localStorage to hit the /refresh_token endpoint
  * in our Node app, then update values in localStorage with data from response.
  * @returns {void}
  */
-export const refreshToken = async () => {
+export const refreshToken = handler(async (pageWindow: Window) => {
+  const LOCALSTORAGE_VALUES = GET_LOCALSTORAGE_VALUES(pageWindow);
   try {
     // Logout if there's no refresh token stored or we've managed to get into a reload infinite loop
     if (
@@ -95,7 +105,7 @@ export const refreshToken = async () => {
       Date.now() - Number(LOCALSTORAGE_VALUES.timestamp) / 1000 < 1000
     ) {
       console.error("No refresh token available");
-      logout();
+      logout(pageWindow);
     }
 
     const axiosData: AxiosResponse = await axios.get(
@@ -111,53 +121,57 @@ export const refreshToken = async () => {
     const data = axiosData.data as Data;
 
     // Update localStorage values
-    window.localStorage.setItem(
+    pageWindow.localStorage.setItem(
       LOCALSTORAGE_KEYS.accessToken,
       data.access_token
     );
-    window.localStorage.setItem(
+    pageWindow.localStorage.setItem(
       LOCALSTORAGE_KEYS.timestamp,
       Date.now().toString()
     );
 
     // Reload the page for localStorage updates to be reflected
-    window.location.reload();
+    pageWindow.location.reload();
   } catch (e) {
     console.error(e);
   }
-};
+});
 
 /**
  * Clear out all localStorage items we've set and reload the page
  * @returns {void}
  */
-export const logout = () => {
+export const logout = handler((pageWindow: Window) => {
+  const LOCALSTORAGE_VALUES = GET_LOCALSTORAGE_VALUES(pageWindow);
   // Clear all localStorage items
   type Property = keyof typeof LOCALSTORAGE_KEYS;
 
   for (const property in LOCALSTORAGE_KEYS) {
-    window.localStorage.removeItem(LOCALSTORAGE_KEYS[property as Property]);
+    pageWindow.localStorage.removeItem(LOCALSTORAGE_KEYS[property as Property]);
   }
   // Navigate to homepage
-  window.location = window.location.origin as unknown as Location;
-};
+  pageWindow.location = pageWindow.location.origin as unknown as Location;
+});
 
-/**
- * Axios global request headers
- * https://github.com/axios/axios#global-axios-defaults
- */
-axios.defaults.baseURL = "https://api.spotify.com/v1";
-axios.defaults.headers["Authorization"] = `Bearer ${
-  getAccessToken() as unknown as string
-}`;
-axios.defaults.headers["Content-Type"] = "application/json";
+const setAxios = handler((pageWindow: Window) => {
+  axios.defaults.baseURL = "https://api.spotify.com/v1";
+  axios.defaults.headers["Authorization"] = `Bearer ${
+    getAccessToken(pageWindow) as unknown as string
+  }`;
+  axios.defaults.headers["Content-Type"] = "application/json";
+});
 
-export const spotifyClient = axios;
+const getAxios = handler((pageWindow: Window) => {
+  setAxios(pageWindow);
+  return axios;
+});
 
-export const getPlaylistTracks = (playlistId: string, offset: number) =>
-  axios.get(
-    `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}`
-  );
+export const getSpotifyClient = getAxios;
 
-export const getPlaylists = () =>
-  axios.get(`https://api.spotify.com/v1/me/playlists`);
+// export const getPlaylistTracks = (playlistId: string, offset: number) =>
+//   axios.get(
+//     `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}`
+//   );
+
+// export const getPlaylists = () =>
+//   axios.get(`https://api.spotify.com/v1/me/playlists`);

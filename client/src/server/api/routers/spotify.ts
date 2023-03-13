@@ -2,22 +2,22 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-import { getPlaylists, spotifyClient } from "~/utils/spotify";
+import { getSpotifyClient } from "~/utils/spotify";
 
-import { AxiosResponse } from "axios";
+import { AxiosStatic } from "axios";
 
 import getPlaylistResponseZod from "../types/_getPlaylistResponse";
-
-// interface InternalAxiosResponse<SpotifyAPIResponse> {
-//   data: SpotifyAPIResponse;
-// }
-
-type Res<T> = Promise<AxiosResponse<T>>;
+import windowZod from "../types/_test";
 
 export const spotifyRouter = createTRPCRouter({
   getPlaylists: publicProcedure
+    .input(z.object({ window: windowZod }))
     .output(z.object({ data: getPlaylistResponseZod }))
-    .query(() => {
-      return spotifyClient.get(`https://api.spotify.com/v1/me/playlists`);
+    .query(({ input }) => {
+      return getSpotifyClient(input.window).get(
+        `https://api.spotify.com/v1/me/playlists`
+      );
     }),
 });
+
+// CHANGE THIS TO REQ-RES REGULAR OLD NEXT JS THINGY

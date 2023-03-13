@@ -1,5 +1,7 @@
 import { Button } from "@mui/material";
 
+type someFunc = (token: string) => void;
+
 export default function App() {
   return (
     <div>

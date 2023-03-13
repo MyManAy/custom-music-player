@@ -1,15 +1,41 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import React from "react";
 import BasicTable from "~/components/BasicTable";
 import Login from "~/components/Login";
-
+import { getAccessToken } from "~/utils/spotify";
 import { api } from "~/utils/api";
+import { UseTRPCQueryResult } from "@trpc/react-query/shared";
 
 const Home: NextPage = () => {
+  const [token, setToken] = React.useState(
+    null as string | false | null | undefined
+  );
   const hello = api.example.hello.useQuery({ startsWith: "h" });
   const world = api.example.world.useQuery({ ownerId: hello.data?.id ?? 2 });
-  // const spotify = api.spotify.getPlaylists.useQuery();
+  const getSpotify = () =>
+    api.spotify.getPlaylists.useQuery({ window: window });
+  // const [playlistData, setPlaylistData] = React.useState(
+  //   null as null | ReturnType<typeof getSpotify>
+  // );
+
+  React.useEffect(() => {
+    (async () => {
+      const fetchedToken = await getAccessToken(window);
+      setToken(fetchedToken);
+      console.log(fetchedToken);
+    })()
+      .then(() => {
+        console.log("worked");
+      })
+      .catch(() => {
+        console.log("didn't work");
+      });
+    // if (token) {
+    //   setPlaylistData(getSpotify());
+    // }
+  }, []);
 
   return (
     <>
@@ -21,14 +47,21 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center justify-center">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           <BasicTable />
-          <Login />
           <p className="text-2xl text-black">
             {hello.data
               ? `${hello.data.name} ${hello.data.things[0]!.classification}`
               : "Loading tRPC query..."}
           </p>
+          <Login />
+          {token}
+
+          {/* {token ? (
+            <div>{getSpotify()?.data?.data.items[0]?.name}</div>
+          ) : (
+            <Login />
+          )} */}
           {/* <div>{spotify.data ? spotify.data.toString() : "uhh"}</div> */}
-          
+
           {/* <Show when={token()} fallback={<Login />}>
         <Logout />
         <SelectPlaylist onChange={(id) => setPlaylistId(id)} />
