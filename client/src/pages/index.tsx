@@ -4,37 +4,44 @@ import Link from "next/link";
 import React from "react";
 import BasicTable from "~/components/BasicTable";
 import Login from "~/components/Login";
-import { getAccessToken } from "~/utils/spotify";
+import { getAccessToken, getSpotifyClient } from "~/utils/spotify";
 import { api } from "~/utils/api";
+import { RootObject as GetPlaylistResponse } from "../server/api/types/getPlaylistResponse";
 import { UseTRPCQueryResult } from "@trpc/react-query/shared";
+import { AxiosHeaders, AxiosStatic } from "axios";
 
 const Home: NextPage = () => {
   const [token, setToken] = React.useState(
     null as string | false | null | undefined
   );
+  const [playlistData, setPlaylistData] = React.useState(
+    null as null | GetPlaylistResponse
+  );
+  const [client, setClient] = React.useState(null as unknown);
   const hello = api.example.hello.useQuery({ startsWith: "h" });
   const world = api.example.world.useQuery({ ownerId: hello.data?.id ?? 2 });
   const getSpotify = () =>
-    api.spotify.getPlaylists.useQuery({ window: window });
-  // const [playlistData, setPlaylistData] = React.useState(
-  //   null as null | ReturnType<typeof getSpotify>
-  // );
+    (client as AxiosStatic).get(`https://api.spotify.com/v1/me/playlists`);
 
   React.useEffect(() => {
     (async () => {
       const fetchedToken = await getAccessToken(window);
       setToken(fetchedToken);
       console.log(fetchedToken);
+      const fetchedClient = await getSpotifyClient(window);
+      setClient(fetchedClient);
+      const data = await fetchedClient.get(
+        `https://api.spotify.com/v1/me/playlists`
+      );
+      console.log(data);
+      setPlaylistData(data.data as unknown as GetPlaylistResponse);
     })()
       .then(() => {
         console.log("worked");
       })
-      .catch(() => {
-        console.log("didn't work");
+      .catch((error) => {
+        console.log(error);
       });
-    // if (token) {
-    //   setPlaylistData(getSpotify());
-    // }
   }, []);
 
   return (
@@ -54,14 +61,14 @@ const Home: NextPage = () => {
           </p>
           <Login />
           {token}
-
+          <div></div> {/*supposed to function as a space*/}
+          {playlistData?.items[0]?.name ?? "waiting..."}
           {/* {token ? (
             <div>{getSpotify()?.data?.data.items[0]?.name}</div>
           ) : (
             <Login />
           )} */}
           {/* <div>{spotify.data ? spotify.data.toString() : "uhh"}</div> */}
-
           {/* <Show when={token()} fallback={<Login />}>
         <Logout />
         <SelectPlaylist onChange={(id) => setPlaylistId(id)} />
