@@ -16,32 +16,22 @@ export interface Song {
   artist: string;
   album: string;
   dateAdded: Date;
-  length: number;
+  length_ms: number;
   mp3: File | null;
 }
 
-const inital: Song[] = [
-  {
-    cover: null,
-    title: "Song 1",
-    artist: "Artist 1",
-    album: "Album 1",
-    dateAdded: new Date(),
-    length: 180,
-    mp3: null,
-  },
-  {
-    cover: null,
-    title: "Song 2",
-    artist: "Artist 2",
-    album: "Album 2",
-    dateAdded: new Date(),
-    length: 240,
-    mp3: null,
-  },
-];
+export interface IAppProps {
+  songs: Song[];
+}
 
-export default function BasicTable() {
+const msToMinsAndSecs = (ms: number) => {
+  const secs = ms / 1000;
+  const mins = Math.floor(secs / 60);
+  const leftOverSecs = Math.floor(secs - mins * 60);
+  return `${mins}:${leftOverSecs.toString().padStart(2, "0")}`;
+};
+
+export default function BasicTable({ songs }: IAppProps) {
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -57,7 +47,7 @@ export default function BasicTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {inital.map((song, index) => (
+          {songs.map((song, index) => (
             <TableRow
               key={index}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -75,7 +65,9 @@ export default function BasicTable() {
               <TableCell align="right">
                 {song.dateAdded.toLocaleDateString()}
               </TableCell>
-              <TableCell align="right">{song.length}</TableCell>
+              <TableCell align="right">
+                {msToMinsAndSecs(song.length_ms)}
+              </TableCell>
               <TableCell align="right">{song.mp3?.name ?? "NO MP3"}</TableCell>
             </TableRow>
           ))}
