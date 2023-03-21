@@ -1,6 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 import { TypeOf, infer } from "zod";
 
+const expressPort = 8888;
+
 // Map for localStorage keys
 const LOCALSTORAGE_KEYS = {
   accessToken: "spotify_access_token",
@@ -28,7 +30,10 @@ const GET_LOCALSTORAGE_VALUES = handler((pageWindow) => ({
  * or URL query params
  * @returns {string} A Spotify access token
  */
-export const getAccessToken = handler(async (pageWindow: Window) => {
+export const getAccessToken = async (
+  pageWindow: Window,
+  authTimedOut: boolean
+): Promise<string | false | null | undefined> => {
   const LOCALSTORAGE_VALUES = GET_LOCALSTORAGE_VALUES(pageWindow);
   const queryString = pageWindow.location.search;
   const urlParams = new URLSearchParams(queryString);
@@ -38,6 +43,10 @@ export const getAccessToken = handler(async (pageWindow: Window) => {
     [LOCALSTORAGE_KEYS.expireTime]: urlParams.get("expires_in"),
   };
   const hasError = urlParams.get("error");
+  if (authTimedOut) {
+    logout(pageWindow);
+    return await getAccessToken(pageWindow, false);
+  }
 
   // If there's an error OR the token in localStorage has expired, refresh the token
   if (
@@ -48,13 +57,13 @@ export const getAccessToken = handler(async (pageWindow: Window) => {
     await refreshToken(pageWindow);
   }
 
-  // // If there is a valid access token in localStorage, use that
-  // if (
-  //   LOCALSTORAGE_VALUES.accessToken &&
-  //   LOCALSTORAGE_VALUES.accessToken !== "undefined"
-  // ) {
-  //   return LOCALSTORAGE_VALUES.accessToken;
-  // }
+  // If there is a valid access token in localStorage, use that
+  if (
+    LOCALSTORAGE_VALUES.accessToken &&
+    LOCALSTORAGE_VALUES.accessToken !== "undefined"
+  ) {
+    return LOCALSTORAGE_VALUES.accessToken;
+  }
 
   // If there is a token in the URL query params, user is logging in for the first time
   if (queryParams[LOCALSTORAGE_KEYS.accessToken]) {
@@ -73,7 +82,7 @@ export const getAccessToken = handler(async (pageWindow: Window) => {
 
   // We should never get here!
   return false;
-});
+};
 
 /**
  * Checks if the amount of time that has elapsed between the timestamp in localStorage
@@ -109,7 +118,7 @@ export const refreshToken = handler(async (pageWindow: Window) => {
     }
 
     const axiosData: AxiosResponse = await axios.get(
-      `/refresh_token?refresh_token=${
+      `http://localhost:${expressPort}/refresh_token?refresh_token=${
         LOCALSTORAGE_VALUES.refreshToken as string
       }`
     );
@@ -153,17 +162,16 @@ export const logout = handler((pageWindow: Window) => {
   pageWindow.location = pageWindow.location.origin as unknown as Location;
 });
 
-const setAxios = handler(async (pageWindow: Window) => {
+const setAxios = (accessToken: string) => {
   axios.defaults.baseURL = "https://api.spotify.com/v1";
-  const accessToken = (await getAccessToken(pageWindow)) as string;
   axios.defaults.headers["Authorization"] = `Bearer ${accessToken}`;
   axios.defaults.headers["Content-Type"] = "application/json";
-});
+};
 
-const getAxios = handler(async (pageWindow: Window) => {
-  await setAxios(pageWindow);
+const getAxios = (accessToken: string) => {
+  setAxios(accessToken);
   return axios;
-});
+};
 
 export const getSpotifyClient = getAxios;
 
