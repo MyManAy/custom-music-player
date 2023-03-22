@@ -23,11 +23,16 @@ const fetchPlaylistData = async (
 const handlePlaylistSelect = async (
   playlistId: string,
   token: string,
-  playlistName: string
+  playlistName: string,
+  playlistImgSrc: string
 ) => {
   await router.push({
     pathname: `/playlists/${playlistId}`,
-    query: { token: token, playlist_name: playlistName },
+    query: {
+      token: token,
+      playlist_name: playlistName,
+      playlist_img_src: playlistImgSrc,
+    },
   });
 };
 
@@ -70,11 +75,12 @@ const Home = () => {
           {playlistData ? (
             <SelectPlaylist
               playlists={playlistData.items}
-              onChange={(id, name) => {
+              onChange={(id, name, imgSrc) => {
                 handlePlaylistSelect(
-                  id as unknown as string,
+                  id,
                   givenToken as unknown as string,
-                  name as unknown as string
+                  name,
+                  imgSrc
                 ).catch(() => console.log("anotha one"));
               }}
             ></SelectPlaylist>

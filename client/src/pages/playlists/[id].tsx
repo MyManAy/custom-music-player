@@ -23,22 +23,27 @@ const fetchPlaylistData = async (
 };
 
 const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] =>
-  data.items.map(({ track }) => ({
+  data.items.map((item) => {
+    const track = item.track;
+    return {
     cover: track.album.images[0] ? new URL(track.album.images[0].url) : null,
     title: track.name,
     artist: track.artists[0]?.name ?? "unknown",
     album: track.album.name,
-    dateAdded: new Date(),
+      dateAdded: new Date(item.added_at),
     length_ms: track.duration_ms,
     mp3: null,
-  }));
+    };
+  });
 
 const Home = () => {
   const router = useRouter();
   const playlistId = router.query["id"];
   const playlistName = router.query["playlist_name"];
+  const playlistImgSrc = router.query["playlist_img_src"];
   const givenToken = router.query["token"];
   const [songs, setSongs] = React.useState(null as null | Song[]);
+  console.log(playlistImgSrc);
 
   React.useEffect(() => {
     if (router.isReady) {
@@ -64,7 +69,8 @@ const Home = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <h1 className="text-4xl text-black">{playlistName}</h1>
+              <img src={playlistImgSrc as unknown as string}></img>
+            </div>
           {songs ? <BasicTable songs={songs} /> : <Spinner />}
         </div>
       </main>

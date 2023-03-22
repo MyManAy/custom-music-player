@@ -11,12 +11,17 @@ import {
   Item,
 } from "~/server/api/types/getPlaylistResponse";
 export interface IAppProps {
-  onChange: (id: Item["id"], name: Item["name"]) => void;
+  onChange: (
+    id: Item["id"],
+    name: Item["name"],
+    imgSrc: Item["images"][0]["url"]
+  ) => void;
   playlists: GetPlaylistResponse["items"];
 }
 
 export default function BasicSelect({ onChange, playlists }: IAppProps) {
-  type PlaylistIdAndName = `${Item["id"]}:${Item["name"]}`;
+  type PlaylistIdAndName =
+    `${Item["id"]}\0${Item["name"]}\0${Item["images"][0]["url"]}`;
   const [playlistIdAndName, setPlaylistIdAndName] = useState(
     null as PlaylistIdAndName | null
   );
@@ -24,7 +29,9 @@ export default function BasicSelect({ onChange, playlists }: IAppProps) {
   const handleChange = (event: SelectChangeEvent) => {
     const value = event.target.value as PlaylistIdAndName;
     setPlaylistIdAndName(value);
-    onChange(...(value.split(":") as [id: string, name: string]));
+    onChange(
+      ...(value.split("\0") as [id: string, name: string, imgSrc: string])
+    );
   };
 
   return (
@@ -38,7 +45,12 @@ export default function BasicSelect({ onChange, playlists }: IAppProps) {
         label="Playlist"
       >
         {playlists.map((item, index) => (
-          <MenuItem key={index} value={`${item.id}:${item.name}`}>
+          <MenuItem
+            key={index}
+            value={`${item.id}\0${item.name}\0${
+              item.images[0]?.url as unknown as string
+            }`}
+          >
             {item.name}
           </MenuItem>
         ))}
