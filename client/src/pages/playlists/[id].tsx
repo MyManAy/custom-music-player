@@ -26,13 +26,13 @@ const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] =>
   data.items.map((item) => {
     const track = item.track;
     return {
-    cover: track.album.images[0] ? new URL(track.album.images[0].url) : null,
-    title: track.name,
-    artist: track.artists[0]?.name ?? "unknown",
-    album: track.album.name,
+      cover: track.album.images[0] ? new URL(track.album.images[0].url) : null,
+      title: track.name,
+      artist: track.artists[0]?.name ?? "unknown",
+      album: track.album.name,
       dateAdded: new Date(item.added_at),
-    length_ms: track.duration_ms,
-    mp3: null,
+      length_ms: track.duration_ms,
+      mp3: null,
     };
   });
 
@@ -69,8 +69,16 @@ const Home = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
+          <div className="flex flex-row items-center justify-center gap-6">
+            <div className="h-60 w-60">
               <img src={playlistImgSrc as unknown as string}></img>
             </div>
+
+            <h1 className="text-8xl font-bold tracking-tighter text-black">
+              {playlistName}
+            </h1>
+          </div>
+
           {songs ? <BasicTable songs={songs} /> : <Spinner />}
         </div>
       </main>
