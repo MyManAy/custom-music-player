@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { Suspense } from "react";
+import React from "react";
 import BasicTable from "~/components/BasicTable";
 import { getAccessToken, getSpotifyClient } from "~/utils/spotify";
 import router, { useRouter } from "next/router";
@@ -8,7 +8,7 @@ import { Song } from "~/components/BasicTable";
 import Spinner from "~/components/Spinner";
 
 interface StaticProps {
-  ids: string[];
+  savedIds: string[];
 }
 
 const redirect = async () => {
@@ -28,30 +28,58 @@ const fetchPlaylistData = async (
   return res.data as PlaylistTracksResponse;
 };
 
-const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] =>
-  data.items.map((item) => {
-    const track = item.track;
-    return {
-      cover: track.album.images[0] ? new URL(track.album.images[0].url) : null,
-      title: track.name,
-      artist: track.artists[0]?.name ?? "unknown",
-      album: track.album.name,
-      dateAdded: new Date(item.added_at),
-      length_ms: track.duration_ms,
-        
-        mp3Loaded: savedIds.includes(track.id),
-      id: track.id,
-    };
-  });
-
-const Home = ({ ids }: StaticProps) => {
+const Home = ({ savedIds }: StaticProps) => {
   const router = useRouter();
   const playlistId = router.query["id"];
   const playlistName = router.query["playlist_name"];
   const playlistImgSrc = router.query["playlist_img_src"];
   const givenToken = router.query["token"];
   const [songs, setSongs] = React.useState(null as null | Song[]);
-  console.log(playlistImgSrc);
+  const songsAvailableToDownload = React.useRef(false);
+
+  const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] => {
+    songsAvailableToDownload.current = true;
+    return data.items.map((item) => {
+      const track = item.track;
+      return {
+        cover: track.album.images[0]
+          ? new URL(track.album.images[0].url)
+          : null,
+        title: track.name,
+        artist: track.artists[0]?.name ?? "unknown",
+        album: track.album.name,
+        dateAdded: new Date(item.added_at),
+        length_ms: track.duration_ms,
+        mp3Loaded: savedIds.includes(track.id),
+        id: track.id,
+      };
+    });
+  };
+
+  const downloadSongs = (songs: Song[]) => {
+    const recentlyDownloaded = [] as string[];
+    return songs.map((song) => async () => {
+      if (savedIds.includes(song.id)) return;
+      console.log("fetching: " + song.id);
+      try {
+        await fetch(`http://localhost:9999/${song.id}`);
+      } catch {
+        console.log("oops again");
+      } finally {
+        console.log(songs);
+        setSongs(
+          songs.map((currentSong) =>
+            currentSong.id === song.id
+              ? { ...song, mp3Loaded: true }
+              : recentlyDownloaded.includes(currentSong.id)
+              ? { ...currentSong, mp3Loaded: true }
+              : currentSong
+          )
+        );
+        recentlyDownloaded.push(song.id);
+      }
+    });
+  };
 
   React.useEffect(() => {
     if (router.isReady) {
@@ -61,13 +89,29 @@ const Home = ({ ids }: StaticProps) => {
           givenToken as unknown as string
         );
         setSongs(convertDataToSongsFormat(data));
-        console.log(ids);
       })().catch((err) => {
-        redirect().catch(() => console.log("uhh"));
+        redirect().catch(() => console.log(err));
         // console.log(err);
       });
     }
   }, [router.isReady]);
+
+  React.useEffect(() => {
+    if (songsAvailableToDownload.current) {
+      (async () => {
+        songsAvailableToDownload.current = false;
+        for (const download of downloadSongs(songs as unknown as Song[])) {
+          try {
+            await download();
+          } catch {
+            console.log("oops");
+          }
+        }
+      })().catch((err) => {
+        console.log(err);
+      });
+    }
+  }, [songs]);
 
   return (
     <>
@@ -101,7 +145,7 @@ export async function getServerSideProps() {
 
   return {
     props: {
-      ids,
+      savedIds: ids,
     },
   };
 }
