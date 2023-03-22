@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@mui/material";
 import Headers from "./Headers";
+import Spinner from "./Spinner";
 
 export interface Song {
   cover: URL | null;
@@ -32,15 +33,7 @@ const msToMinsAndSecs = (ms: number) => {
   return `${mins}:${leftOverSecs.toString().padStart(2, "0")}`;
 };
 
-const headers = [
-  "Cover",
-  "Title",
-  "Artist",
-  "Album",
-  "Date Added",
-  "Length",
-  "Loaded",
-];
+const headers = ["Cover", "Title", "Artist", "Album", "Date Added", "Length"];
 
 export default function BasicTable({ songs }: IAppProps) {
   return (
@@ -73,7 +66,13 @@ export default function BasicTable({ songs }: IAppProps) {
               <TableCell align="right">
                 {msToMinsAndSecs(song.length_ms)}
               </TableCell>
-              <TableCell align="right">{song.mp3Loaded}</TableCell>
+              {song.mp3Loaded ? (
+                <></>
+              ) : (
+                <TableCell>
+                  <Spinner />
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

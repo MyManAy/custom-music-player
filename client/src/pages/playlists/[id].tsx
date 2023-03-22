@@ -38,7 +38,8 @@ const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] =>
       album: track.album.name,
       dateAdded: new Date(item.added_at),
       length_ms: track.duration_ms,
-      mp3Loaded: false,
+        
+        mp3Loaded: savedIds.includes(track.id),
       id: track.id,
     };
   });
