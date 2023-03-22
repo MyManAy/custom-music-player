@@ -18,6 +18,7 @@ export interface Song {
   dateAdded: Date;
   length_ms: number;
   mp3: File | null;
+  id: string;
 }
 
 export interface IAppProps {
@@ -51,9 +52,9 @@ export default function BasicTable({ songs }: IAppProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {songs.map((song, index) => (
+          {songs.map((song) => (
             <TableRow
-              key={index}
+              key={song.id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
               <TableCell component="th" scope="row">
