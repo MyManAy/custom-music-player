@@ -6,9 +6,15 @@ import router, { useRouter } from "next/router";
 import { Root as PlaylistTracksResponse } from "~/server/api/types/getPlaylistTracksResponse";
 import { Song } from "~/components/BasicTable";
 import Spinner from "~/components/Spinner";
+
+interface StaticProps {
+  ids: string[];
+}
+
 const redirect = async () => {
   await router.push({ pathname: `/`, query: { auth_timed_out: true } });
 };
+
 const fetchPlaylistData = async (
   playlistId: string,
   token: string
@@ -32,12 +38,12 @@ const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] =>
       album: track.album.name,
       dateAdded: new Date(item.added_at),
       length_ms: track.duration_ms,
-      mp3: null,
+      mp3Loaded: false,
       id: track.id,
     };
   });
 
-const Home = () => {
+const Home = ({ ids }: StaticProps) => {
   const router = useRouter();
   const playlistId = router.query["id"];
   const playlistName = router.query["playlist_name"];
@@ -54,6 +60,7 @@ const Home = () => {
           givenToken as unknown as string
         );
         setSongs(convertDataToSongsFormat(data));
+        console.log(ids);
       })().catch((err) => {
         redirect().catch(() => console.log("uhh"));
         // console.log(err);
@@ -86,5 +93,16 @@ const Home = () => {
     </>
   );
 };
+
+export async function getServerSideProps() {
+  const res = await fetch("http://localhost:9999/getSavedIds");
+  const ids = (await res.json()) as unknown as string[];
+
+  return {
+    props: {
+      ids,
+    },
+  };
+}
 
 export default Home;
