@@ -17,7 +17,7 @@ export interface Song {
   album: string;
   dateAdded: Date;
   length_ms: number;
-  mp3: File | null;
+  mp3Loaded: boolean;
   id: string;
 }
 
@@ -39,7 +39,7 @@ const headers = [
   "Album",
   "Date Added",
   "Length",
-  "MP3",
+  "Loaded",
 ];
 
 export default function BasicTable({ songs }: IAppProps) {
@@ -73,7 +73,7 @@ export default function BasicTable({ songs }: IAppProps) {
               <TableCell align="right">
                 {msToMinsAndSecs(song.length_ms)}
               </TableCell>
-              <TableCell align="right">{song.mp3?.name ?? "NO MP3"}</TableCell>
+              <TableCell align="right">{song.mp3Loaded}</TableCell>
             </TableRow>
           ))}
         </TableBody>
