@@ -18,6 +18,11 @@ const download = async (trackId) => {
 
 const app = express();
 
+app.get("/getSavedIds", async (req, res) => {
+  const files = fs.readdirSync("../songs");
+  res.send(files.map((fileName) => fileName.replace(".mp3", "")));
+});
+
 app.all("/:id", async (req, res) => {
   try {
     await download(req.params.id);
