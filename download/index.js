@@ -29,5 +29,5 @@ app.all("/:id", async (req, res) => {
 });
 
 app.listen(9999, () => {
-  console.log("download app running on 9999");
+  console.log("Download app on http://localhost:9999");
 });

@@ -103,7 +103,7 @@ app.get("/refresh_token", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Auth app on http://localhost:${port}`);
 });
 
 // // private methods
