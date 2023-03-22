@@ -3,6 +3,7 @@ import { Spotify } from "spotifydl-core";
 import fs from "fs";
 import { path as ffmpegPath } from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
+import cors from "cors";
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const credentials = {
@@ -17,6 +18,8 @@ const download = async (trackId) => {
 };
 
 const app = express();
+
+app.use(cors());
 
 app.get("/getSavedIds", async (req, res) => {
   const files = fs.readdirSync("../songs");
