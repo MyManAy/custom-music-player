@@ -8,7 +8,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-// import { For, createSignal, mapArray } from "solid-js";
+import Headers from "./Headers";
 
 export interface Song {
   cover: URL | null;
@@ -31,19 +31,23 @@ const msToMinsAndSecs = (ms: number) => {
   return `${mins}:${leftOverSecs.toString().padStart(2, "0")}`;
 };
 
+const headers = [
+  "Cover",
+  "Title",
+  "Artist",
+  "Album",
+  "Date Added",
+  "Length",
+  "MP3",
+];
+
 export default function BasicTable({ songs }: IAppProps) {
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>Cover</TableCell>
-            <TableCell align="right">Title</TableCell>
-            <TableCell align="right">Artist</TableCell>
-            <TableCell align="right">Album</TableCell>
-            <TableCell align="right">Date Added</TableCell>
-            <TableCell align="right">Length</TableCell>
-            <TableCell align="right">MP3</TableCell>
+            <Headers headers={headers}></Headers>
           </TableRow>
         </TableHead>
         <TableBody>
