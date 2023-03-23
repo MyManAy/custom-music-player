@@ -1,12 +1,12 @@
 import Head from "next/head";
 import React from "react";
 import BasicTable from "~/components/BasicTable";
-import { getAccessToken, getSpotifyClient } from "~/utils/spotify";
 import router, { useRouter } from "next/router";
-import { Root as PlaylistTracksResponse } from "~/server/api/types/getPlaylistTracksResponse";
 import { Song } from "~/components/BasicTable";
 import Spinner from "~/components/Spinner";
 import BottomPlayer from "~/components/BottomPlayer";
+import { downloadSongs, fetchPlaylistData } from "~/utils/playlistsFunctions";
+import { convertDataToSongsFormat } from "~/utils/playlistsFunctions";
 
 interface StaticProps {
   savedIds: string[];
@@ -14,29 +14,6 @@ interface StaticProps {
 
 const redirect = async () => {
   await router.push({ pathname: `/`, query: { auth_timed_out: true } });
-};
-
-const fetchPlaylistData = async (
-  playlistId: string,
-  token: string
-): Promise<PlaylistTracksResponse> => {
-  console.log(token);
-  console.log(playlistId);
-  const fetchedClient = getSpotifyClient(token);
-  let total = Infinity;
-  let queried = 0;
-  let items = [] as PlaylistTracksResponse["items"];
-  let data = {} as PlaylistTracksResponse;
-  while (total > queried) {
-    const res = await fetchedClient.get(
-      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${queried}`
-    );
-    data = res.data as PlaylistTracksResponse;
-    total = data.total;
-    queried += data.items.length;
-    items = items.concat(data.items);
-  }
-  return { ...data, items: items } as PlaylistTracksResponse;
 };
 
 const Home = ({ savedIds }: StaticProps) => {
@@ -48,58 +25,6 @@ const Home = ({ savedIds }: StaticProps) => {
   const [songs, setSongs] = React.useState(null as null | Song[]);
   const songsAvailableToDownload = React.useRef(false);
 
-  const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] => {
-    songsAvailableToDownload.current = true;
-    return data.items
-      .filter(
-        (item) =>
-          !item.is_local &&
-          item.track &&
-          item.track.type === "track" &&
-          item.track.id
-      )
-      .map((item) => {
-        const track = item.track;
-        return {
-          cover: track.album.images[0]
-            ? new URL(track.album.images[0].url)
-            : null,
-          title: track.name,
-          artist: track.artists[0]?.name ?? "unknown",
-          album: track.album.name,
-          dateAdded: new Date(item.added_at),
-          length_ms: track.duration_ms,
-          mp3Loaded: savedIds.includes(track.id),
-          id: track.id,
-        };
-      });
-  };
-
-  const downloadSongs = (songs: Song[]) => {
-    const recentlyDownloaded = [] as string[];
-    return songs.map((song) => async () => {
-      if (savedIds.includes(song.id)) return;
-      console.log("fetching: " + song.id);
-      try {
-        await fetch(`http://localhost:9999/${song.id}`);
-      } catch {
-        console.log("oops again");
-      } finally {
-        console.log(songs);
-        setSongs(
-          songs.map((currentSong) =>
-            currentSong.id === song.id
-              ? { ...song, mp3Loaded: true }
-              : recentlyDownloaded.includes(currentSong.id)
-              ? { ...currentSong, mp3Loaded: true }
-              : currentSong
-          )
-        );
-        recentlyDownloaded.push(song.id);
-      }
-    });
-  };
-
   React.useEffect(() => {
     if (router.isReady) {
       (async () => {
@@ -107,10 +32,11 @@ const Home = ({ savedIds }: StaticProps) => {
           playlistId as unknown as string,
           givenToken as unknown as string
         );
-        setSongs(convertDataToSongsFormat(data));
+        const songs = convertDataToSongsFormat(data, savedIds);
+        songsAvailableToDownload.current = true;
+        setSongs(songs);
       })().catch((err) => {
         redirect().catch(() => console.log(err));
-        // console.log(err);
       });
     }
   }, [router.isReady]);
@@ -119,7 +45,11 @@ const Home = ({ savedIds }: StaticProps) => {
     if (songsAvailableToDownload.current) {
       (async () => {
         songsAvailableToDownload.current = false;
-        for (const download of downloadSongs(songs as unknown as Song[])) {
+        for (const download of downloadSongs(
+          songs as unknown as Song[],
+          savedIds,
+          setSongs
+        )) {
           try {
             await download();
           } catch {
