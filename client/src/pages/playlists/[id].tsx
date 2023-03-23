@@ -6,6 +6,7 @@ import router, { useRouter } from "next/router";
 import { Root as PlaylistTracksResponse } from "~/server/api/types/getPlaylistTracksResponse";
 import { Song } from "~/components/BasicTable";
 import Spinner from "~/components/Spinner";
+import BottomPlayer from "~/components/BottomPlayer";
 
 interface StaticProps {
   savedIds: string[];
@@ -22,10 +23,20 @@ const fetchPlaylistData = async (
   console.log(token);
   console.log(playlistId);
   const fetchedClient = getSpotifyClient(token);
-  const res = await fetchedClient.get(
-    `https://api.spotify.com/v1/playlists/${playlistId}/tracks`
-  );
-  return res.data as PlaylistTracksResponse;
+  let total = Infinity;
+  let queried = 0;
+  let items = [] as PlaylistTracksResponse["items"];
+  let data = {} as PlaylistTracksResponse;
+  while (total > queried) {
+    const res = await fetchedClient.get(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${queried}`
+    );
+    data = res.data as PlaylistTracksResponse;
+    total = data.total;
+    queried += data.items.length;
+    items = items.concat(data.items);
+  }
+  return { ...data, items: items } as PlaylistTracksResponse;
 };
 
 const Home = ({ savedIds }: StaticProps) => {
@@ -39,21 +50,29 @@ const Home = ({ savedIds }: StaticProps) => {
 
   const convertDataToSongsFormat = (data: PlaylistTracksResponse): Song[] => {
     songsAvailableToDownload.current = true;
-    return data.items.map((item) => {
-      const track = item.track;
-      return {
-        cover: track.album.images[0]
-          ? new URL(track.album.images[0].url)
-          : null,
-        title: track.name,
-        artist: track.artists[0]?.name ?? "unknown",
-        album: track.album.name,
-        dateAdded: new Date(item.added_at),
-        length_ms: track.duration_ms,
-        mp3Loaded: savedIds.includes(track.id),
-        id: track.id,
-      };
-    });
+    return data.items
+      .filter(
+        (item) =>
+          !item.is_local &&
+          item.track &&
+          item.track.type === "track" &&
+          item.track.id
+      )
+      .map((item) => {
+        const track = item.track;
+        return {
+          cover: track.album.images[0]
+            ? new URL(track.album.images[0].url)
+            : null,
+          title: track.name,
+          artist: track.artists[0]?.name ?? "unknown",
+          album: track.album.name,
+          dateAdded: new Date(item.added_at),
+          length_ms: track.duration_ms,
+          mp3Loaded: savedIds.includes(track.id),
+          id: track.id,
+        };
+      });
   };
 
   const downloadSongs = (songs: Song[]) => {
@@ -134,6 +153,7 @@ const Home = ({ savedIds }: StaticProps) => {
 
           {songs ? <BasicTable songs={songs} /> : <Spinner />}
         </div>
+        <BottomPlayer />
       </main>
     </>
   );
