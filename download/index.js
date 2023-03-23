@@ -12,9 +12,11 @@ const credentials = {
 };
 const spotify = new Spotify(credentials);
 
+const songsFolderPath = "../client/public/songs";
+
 const download = async (trackId) => {
   const song = await spotify.downloadTrack(trackId); // Downloading goes brr brr
-  fs.writeFileSync(`../songs/${trackId}.mp3`, song);
+  fs.writeFileSync(`${songsFolderPath}/${trackId}.mp3`, song);
 };
 
 const app = express();
@@ -22,7 +24,7 @@ const app = express();
 app.use(cors());
 
 app.get("/getSavedIds", async (req, res) => {
-  const files = fs.readdirSync("../songs");
+  const files = fs.readdirSync(songsFolderPath);
   res.send(files.map((fileName) => fileName.replace(".mp3", "")));
 });
 
