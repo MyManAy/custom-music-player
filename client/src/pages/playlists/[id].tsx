@@ -9,6 +9,7 @@ import {
   fetchPlaylistData,
   convertDataToSongsFormat,
 } from "~/utils/playlistsFunctions";
+import { Howl } from "howler";
 
 interface StaticProps {
   savedIds: string[];
@@ -25,6 +26,10 @@ const Home = ({ savedIds }: StaticProps) => {
   const playlistImgSrc = router.query["playlist_img_src"];
   const givenToken = router.query["token"];
   const [songs, setSongs] = React.useState(null as null | Song[]);
+  const [howl, setHowl] = React.useState(null as null | Howl);
+  const [src, setSrc] = React.useState(null as null | string);
+
+  // const [isPlaying, setIsPlaying] = React.useState(false);
   const songsAvailableToDownload = React.useRef(false);
 
   const downloadSongs = (songs: Song[]) => {
@@ -86,6 +91,21 @@ const Home = ({ savedIds }: StaticProps) => {
     }
   }, [songs]);
 
+  React.useEffect(() => {
+    if (howl) {
+      howl.stop();
+    }
+    const sound = new Howl({
+      src: src ?? `/songs/${songs?.[0]?.id ?? ""}.mp3`,
+    });
+    setHowl(sound);
+    sound.play();
+  }, [src]);
+
+  const handleSongSelect = (id: string) => {
+    setSrc(`/songs/${id}.mp3`);
+  };
+
   return (
     <>
       <Head>
@@ -94,7 +114,7 @@ const Home = ({ savedIds }: StaticProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
+        <div className="container flex flex-col items-center justify-center gap-12 px-4 pt-16 pb-24 ">
           <div className="flex flex-row items-center justify-center gap-6">
             <div className="h-60 w-60">
               <img src={playlistImgSrc as unknown as string}></img>
@@ -105,7 +125,11 @@ const Home = ({ savedIds }: StaticProps) => {
             </h1>
           </div>
 
-          {songs ? <BasicTable songs={songs} /> : <Spinner />}
+          {songs ? (
+            <BasicTable songs={songs} onRowClick={handleSongSelect} />
+          ) : (
+            <Spinner />
+          )}
         </div>
         <BottomPlayer />
       </main>

@@ -24,6 +24,7 @@ export interface Song {
 
 export interface IAppProps {
   songs: Song[];
+  onRowClick: (id: string) => void;
 }
 
 const msToMinsAndSecs = (ms: number) => {
@@ -35,7 +36,7 @@ const msToMinsAndSecs = (ms: number) => {
 
 const headers = ["Cover", "Title", "Artist", "Album", "Date Added", "Length"];
 
-export default function BasicTable({ songs }: IAppProps) {
+export default function BasicTable({ songs, onRowClick }: IAppProps) {
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -47,6 +48,8 @@ export default function BasicTable({ songs }: IAppProps) {
         <TableBody>
           {songs.map((song) => (
             <TableRow
+              hover
+              onClick={() => onRowClick(song.id)}
               key={song.id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
@@ -57,9 +60,9 @@ export default function BasicTable({ songs }: IAppProps) {
                   "NO IMG"
                 )}
               </TableCell>
-              <TableCell align="right">{song.title}</TableCell>
-              <TableCell align="right">{song.artist}</TableCell>
-              <TableCell align="right">{song.album}</TableCell>
+              <TableCell align="left">{song.title}</TableCell>
+              <TableCell align="left">{song.artist}</TableCell>
+              <TableCell align="left">{song.album}</TableCell>
               <TableCell align="right">
                 {song.dateAdded.toLocaleDateString()}
               </TableCell>

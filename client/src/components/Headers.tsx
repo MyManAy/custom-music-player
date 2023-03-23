@@ -8,7 +8,12 @@ export default function Headers({ headers }: IAppProps) {
   return (
     <>
       {headers.map((item, index) => {
-        if (index === 0)
+        if (
+          item === "Cover" ||
+          item === "Title" ||
+          item === "Artist" ||
+          item === "Album"
+        )
           return (
             <TableCell
               sx={{ fontWeight: "700", color: "rgb(51 65 85)" }}
