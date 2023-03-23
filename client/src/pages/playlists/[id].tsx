@@ -5,8 +5,10 @@ import router, { useRouter } from "next/router";
 import { Song } from "~/components/BasicTable";
 import Spinner from "~/components/Spinner";
 import BottomPlayer from "~/components/BottomPlayer";
-import { downloadSongs, fetchPlaylistData } from "~/utils/playlistsFunctions";
-import { convertDataToSongsFormat } from "~/utils/playlistsFunctions";
+import {
+  fetchPlaylistData,
+  convertDataToSongsFormat,
+} from "~/utils/playlistsFunctions";
 
 interface StaticProps {
   savedIds: string[];
@@ -25,6 +27,31 @@ const Home = ({ savedIds }: StaticProps) => {
   const [songs, setSongs] = React.useState(null as null | Song[]);
   const songsAvailableToDownload = React.useRef(false);
 
+  const downloadSongs = (songs: Song[]) => {
+    const recentlyDownloaded = [] as string[];
+    return songs.map((song) => async () => {
+      if (savedIds.includes(song.id)) return;
+      console.log("fetching: " + song.id);
+      try {
+        await fetch(`http://localhost:9999/${song.id}`);
+      } catch {
+        console.log("oops again");
+      } finally {
+        console.log(songs);
+        setSongs(
+          songs.map((currentSong) =>
+            currentSong.id === song.id
+              ? { ...song, mp3Loaded: true }
+              : recentlyDownloaded.includes(currentSong.id)
+              ? { ...currentSong, mp3Loaded: true }
+              : currentSong
+          )
+        );
+        recentlyDownloaded.push(song.id);
+      }
+    });
+  };
+
   React.useEffect(() => {
     if (router.isReady) {
       (async () => {
@@ -37,6 +64,7 @@ const Home = ({ savedIds }: StaticProps) => {
         setSongs(songs);
       })().catch((err) => {
         redirect().catch(() => console.log(err));
+        // console.log(err);
       });
     }
   }, [router.isReady]);
@@ -45,11 +73,7 @@ const Home = ({ savedIds }: StaticProps) => {
     if (songsAvailableToDownload.current) {
       (async () => {
         songsAvailableToDownload.current = false;
-        for (const download of downloadSongs(
-          songs as unknown as Song[],
-          savedIds,
-          setSongs
-        )) {
+        for (const download of downloadSongs(songs as unknown as Song[])) {
           try {
             await download();
           } catch {

@@ -1,7 +1,6 @@
 import Head from "next/head";
-import React, { Suspense } from "react";
-import BasicTable from "~/components/BasicTable";
-import { getAccessToken, getSpotifyClient } from "~/utils/spotify";
+import React from "react";
+import { getSpotifyClient } from "~/utils/spotify";
 import { api } from "~/utils/api";
 import { RootObject as GetPlaylistResponse } from "~/server/api/types/getPlaylistResponse";
 import router, { useRouter } from "next/router";
@@ -11,6 +10,7 @@ import Spinner from "~/components/Spinner";
 const redirect = async () => {
   await router.push({ pathname: `/`, query: { auth_timed_out: true } });
 };
+
 const fetchPlaylistData = async (
   token: string
 ): Promise<GetPlaylistResponse> => {
@@ -20,6 +20,7 @@ const fetchPlaylistData = async (
   );
   return res.data as GetPlaylistResponse;
 };
+
 const handlePlaylistSelect = async (
   playlistId: string,
   token: string,

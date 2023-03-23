@@ -54,32 +54,3 @@ export const convertDataToSongsFormat = (
       };
     });
 };
-
-export const downloadSongs = (
-  songs: Song[],
-  savedIds: string[],
-  songSetter: React.Dispatch<React.SetStateAction<Song[] | null>>
-) => {
-  const recentlyDownloaded = [] as string[];
-  return songs.map((song) => async () => {
-    if (savedIds.includes(song.id)) return;
-    console.log("fetching: " + song.id);
-    try {
-      await fetch(`http://localhost:9999/${song.id}`);
-    } catch {
-      console.log("oops again");
-    } finally {
-      console.log(songs);
-      songSetter(
-        songs.map((currentSong) =>
-          currentSong.id === song.id
-            ? { ...song, mp3Loaded: true }
-            : recentlyDownloaded.includes(currentSong.id)
-            ? { ...currentSong, mp3Loaded: true }
-            : currentSong
-        )
-      );
-      recentlyDownloaded.push(song.id);
-    }
-  });
-};
