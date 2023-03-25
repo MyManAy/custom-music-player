@@ -1,10 +1,10 @@
 import Head from "next/head";
 import React from "react";
 import { getSpotifyClient } from "~/utils/spotify";
-
 import router, { useRouter } from "next/router";
 import SelectPlaylist from "~/components/SelectPlaylist";
 import Spinner from "~/components/Spinner";
+import type { RootObject as GetPlaylistResponse } from "~/types/getPlaylistResponse";
 
 const redirect = async () => {
   await router.push({ pathname: `/`, query: { auth_timed_out: true } });
@@ -42,7 +42,6 @@ const Home = () => {
   const [playlistData, setPlaylistData] = React.useState(
     null as null | GetPlaylistResponse
   );
-  const hello = api.example.hello.useQuery({ startsWith: "h" });
 
   React.useEffect(() => {
     if (router.isReady) {
@@ -64,13 +63,7 @@ const Home = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <h1 className="text-6xl text-black">
-            {hello.data ? (
-              `${hello.data.name} ${hello.data.things[0]!.classification}`
-            ) : (
-              <Spinner />
-            )}
-          </h1>
+          <h1 className="text-6xl text-black">Hello World</h1>
           <div></div>
           {playlistData ? (
             <SelectPlaylist

@@ -1,5 +1,5 @@
 import { BottomNavigationAction } from "@mui/material";
-import { ComponentType } from "react";
+import type { ComponentType } from "react";
 
 interface IconProps {
   sx: {

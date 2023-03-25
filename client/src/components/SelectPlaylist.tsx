@@ -3,13 +3,14 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from "@mui/material";
 import { useState } from "react";
-import {
+import type {
   RootObject as GetPlaylistResponse,
   Item,
-} from "~/server/api/types/getPlaylistResponse";
+} from "~/types/getPlaylistResponse";
+
 export interface IAppProps {
   onChange: (
     id: Item["id"],

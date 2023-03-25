@@ -1,8 +1,7 @@
-import * as React from "react";
 import Box from "@mui/material/Box";
 import CircularProgress, {
   circularProgressClasses,
-  CircularProgressProps,
+  type CircularProgressProps,
 } from "@mui/material/CircularProgress";
 
 // Inspired by the former Facebook spinners.

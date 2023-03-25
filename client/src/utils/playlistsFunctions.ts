@@ -1,13 +1,11 @@
-import { Root as PlaylistTracksResponse } from "~/server/api/types/getPlaylistTracksResponse";
 import { getSpotifyClient } from "./spotify";
-import { Song } from "~/components/BasicTable";
+import type { Root as PlaylistTracksResponse } from "~/utils/getPlaylistTracksResponse";
+import type { Song } from "~/components/BasicTable";
 
 export const fetchPlaylistData = async (
   playlistId: string,
   token: string
 ): Promise<PlaylistTracksResponse> => {
-  console.log(token);
-  console.log(playlistId);
   const fetchedClient = getSpotifyClient(token);
   let total = Infinity;
   let queried = 0;

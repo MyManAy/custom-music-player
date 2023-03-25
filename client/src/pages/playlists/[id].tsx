@@ -2,19 +2,21 @@ import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import BasicTable from "~/components/BasicTable";
 import router, { useRouter } from "next/router";
-import { Song } from "~/components/BasicTable";
 import Spinner from "~/components/Spinner";
-import BottomPlayer, { SelectedSongDisplay } from "~/components/BottomPlayer";
+import BottomPlayer, {
+  type SelectedSongDisplay,
+} from "~/components/BottomPlayer";
 import {
   fetchPlaylistData,
   convertDataToSongsFormat,
   getRandomSongId,
 } from "~/utils/playlistsFunctions";
 import { Howl } from "howler";
-
-import Actions, { Action } from "~/components/Actions";
+import Actions, { type Action } from "~/components/Actions";
 import MusicSlider from "~/components/MusicSlider";
 import { match, P } from "ts-pattern";
+import Image from "next/image";
+import type { Song } from "~/components/BasicTable";
 
 interface StaticProps {
   savedIds: string[];
@@ -46,13 +48,11 @@ const Home = ({ savedIds }: StaticProps) => {
     const recentlyDownloaded = [] as string[];
     return songs.map((song) => async () => {
       if (savedIds.includes(song.id)) return;
-      console.log("fetching: " + song.id);
       try {
         await fetch(`http://localhost:9999/${song.id}`);
       } catch {
         console.log("oops again");
       } finally {
-        console.log(songs);
         setSongs(
           songs.map((currentSong) =>
             currentSong.id === song.id
@@ -235,9 +235,11 @@ const Home = ({ savedIds }: StaticProps) => {
         <div className="container flex flex-col items-center justify-center gap-12 px-4 pt-16 pb-24 ">
           <div className="flex flex-row items-center justify-center gap-6">
             <div className="h-60 w-60">
-              <img src={playlistImgSrc as unknown as string}></img>
+              <Image
+                src={playlistImgSrc as unknown as string}
+                alt="playlist image not found"
+              ></Image>
             </div>
-
             <h1 className="text-8xl font-bold tracking-tighter text-black">
               {playlistName}
             </h1>

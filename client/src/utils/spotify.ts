@@ -1,4 +1,5 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
+import type { AxiosResponse } from "axios";
 
 const expressPort = 8888;
 
@@ -68,7 +69,10 @@ export const getAccessToken = async (
   if (queryParams[LOCALSTORAGE_KEYS.accessToken]) {
     // Store the query params in localStorage
     for (const property in queryParams) {
-      pageWindow.localStorage.setItem(property, queryParams[property]!);
+      pageWindow.localStorage.setItem(
+        property,
+        queryParams[property] as unknown as string
+      );
     }
     // Set timestamp
     pageWindow.localStorage.setItem(
@@ -150,7 +154,6 @@ export const refreshToken = handler(async (pageWindow: Window) => {
  * @returns {void}
  */
 export const logout = handler((pageWindow: Window) => {
-  const LOCALSTORAGE_VALUES = GET_LOCALSTORAGE_VALUES(pageWindow);
   // Clear all localStorage items
   type Property = keyof typeof LOCALSTORAGE_KEYS;
 
