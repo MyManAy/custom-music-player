@@ -1,5 +1,4 @@
 import axios, { AxiosResponse } from "axios";
-import { TypeOf, infer } from "zod";
 
 const expressPort = 8888;
 

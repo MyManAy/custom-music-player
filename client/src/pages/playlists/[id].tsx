@@ -11,7 +11,7 @@ import {
   getRandomSongId,
 } from "~/utils/playlistsFunctions";
 import { Howl } from "howler";
-import { msToMinsAndSecs } from "~/utils/msToMinsAndSecs";
+
 import Actions, { Action } from "~/components/Actions";
 import MusicSlider from "~/components/MusicSlider";
 import { match, P } from "ts-pattern";
@@ -123,16 +123,16 @@ const Home = ({ savedIds }: StaticProps) => {
       .with(P.select(), (action) => {
         if (isRepeated || isShuffled) setIsEnded(true);
         else {
-          const definedSongs = songs as unknown as Song[];
+          const definedSongs = (songs as unknown as Song[]).filter(
+            (song) => song.mp3Loaded
+          );
           const index = definedSongs.findIndex(
             ({ id }) => id === currentSongId
           );
           const shift = action === "forward" ? 1 : -1;
+          const songToGoTo = definedSongs[index + shift];
           setCurrentSongId(
-            (
-              definedSongs[index + shift] ??
-              (definedSongs[0] as unknown as Song)
-            ).id
+            (songToGoTo ?? (definedSongs[0] as unknown as Song)).id
           );
         }
       })

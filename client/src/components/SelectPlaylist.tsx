@@ -5,7 +5,7 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import {
   RootObject as GetPlaylistResponse,
   Item,

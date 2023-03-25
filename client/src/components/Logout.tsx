@@ -1,7 +1,4 @@
 import { Button } from "@mui/material";
-// import { logout } from "../spotify.js";
-/*eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }]*/
-/*eslint-env es6*/
 
 export default function App() {
   return (

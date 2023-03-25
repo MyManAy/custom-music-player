@@ -1,5 +1,5 @@
 import { Box, Slider, Typography, styled } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { msToMinsAndSecs } from "~/utils/msToMinsAndSecs";
 
 interface IAppProps {
