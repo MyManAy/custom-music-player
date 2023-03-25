@@ -1,8 +1,7 @@
 import Head from "next/head";
 import React from "react";
 import { getSpotifyClient } from "~/utils/spotify";
-import { api } from "~/utils/api";
-import { RootObject as GetPlaylistResponse } from "~/server/api/types/getPlaylistResponse";
+
 import router, { useRouter } from "next/router";
 import SelectPlaylist from "~/components/SelectPlaylist";
 import Spinner from "~/components/Spinner";
