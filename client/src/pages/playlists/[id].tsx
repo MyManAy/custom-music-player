@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React from "react";
+import { useEffect, useRef, useState } from "react";
 import BasicTable from "~/components/BasicTable";
 import router, { useRouter } from "next/router";
 import { Song } from "~/components/BasicTable";
@@ -8,8 +8,13 @@ import BottomPlayer from "~/components/BottomPlayer";
 import {
   fetchPlaylistData,
   convertDataToSongsFormat,
+  getRandomSongId,
 } from "~/utils/playlistsFunctions";
 import { Howl } from "howler";
+import { msToMinsAndSecs } from "~/utils/msToMinsAndSecs";
+import Actions, { Action } from "~/components/Actions";
+import MusicSlider from "~/components/MusicSlider";
+import { match, P } from "ts-pattern";
 
 interface StaticProps {
   savedIds: string[];
@@ -32,6 +37,10 @@ const Home = ({ savedIds }: StaticProps) => {
   const [timer, setTimer] = useState(
     null as null | ReturnType<typeof setInterval>
   );
+  const [isRepeated, setIsRepeated] = useState(false);
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [isEnded, setIsEnded] = useState(false);
+  const songsAvailableToDownload = useRef(false);
 
   const downloadSongs = (songs: Song[]) => {
     const recentlyDownloaded = [] as string[];
@@ -90,11 +99,47 @@ const Home = ({ savedIds }: StaticProps) => {
       playPause();
     }
   };
+
   const handleSlide = (secs: number) => {
     if (secsPlayed === 0) return;
     setSecsPlayed(secs);
     howl?.seek(secs);
   };
+
+  const handleActionClick = (action: Action) =>
+    match<Action, void>(action)
+      .with("playPause", () => {
+        if (secsPlayed === 0) return;
+        playPause();
+      })
+      .with("repeat", () => {
+        if (isShuffled) setIsShuffled(false);
+        setIsRepeated((isRepeated) => !isRepeated);
+      })
+      .with("shuffle", () => {
+        if (isRepeated) setIsRepeated(false);
+        setIsShuffled((isShuffled) => !isShuffled);
+      })
+      .with(P.select(), (action) => {
+        if (isRepeated || isShuffled) setIsEnded(true);
+        else {
+          const definedSongs = songs as unknown as Song[];
+          const index = definedSongs.findIndex(
+            ({ id }) => id === currentSongId
+          );
+          const shift = action === "forward" ? 1 : -1;
+          setCurrentSongId(
+            (
+              definedSongs[index + shift] ??
+              (definedSongs[0] as unknown as Song)
+            ).id
+          );
+        }
+      })
+      .exhaustive();
+
+  const findCurrentSong = (songs?: Song[] | null, id?: string | null) =>
+    songs?.find((item) => item.id === id);
 
   useEffect(() => {
     router.events.on("routeChangeStart", () => Howler.stop());
@@ -102,6 +147,8 @@ const Home = ({ savedIds }: StaticProps) => {
       router.events.off("routeChangeStart", () => Howler.stop());
     };
   }, [router]);
+
+  useEffect(() => {
     if (router.isReady) {
       (async () => {
         const data = await fetchPlaylistData(
@@ -113,12 +160,11 @@ const Home = ({ savedIds }: StaticProps) => {
         setSongs(songs);
       })().catch((err) => {
         redirect().catch(() => console.log(err));
-        // console.log(err);
       });
     }
   }, [router.isReady]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (songsAvailableToDownload.current) {
       (async () => {
         songsAvailableToDownload.current = false;
@@ -147,10 +193,23 @@ const Home = ({ savedIds }: StaticProps) => {
     sound.play();
   }, [currentSongId]);
 
+  useEffect(() => {
+    if (isEnded) {
+      clearInterval(timer as unknown as ReturnType<typeof setInterval>);
+      setSecsPlayed(0);
+      setTimer(null);
+      if (isShuffled)
+        setCurrentSongId((id) => {
+          const randomId = getRandomSongId(songs as unknown as Song[]);
+          if (id === randomId) return id.concat(" ");
+          return randomId;
+        });
+      else if (isRepeated)
+        setCurrentSongId((id) => (id as unknown as string).concat(" "));
 
-  const handleSongSelect = (id: string) => {
-    setSrc(`/songs/${id}.mp3`);
-  };
+      setIsEnded(false);
+    }
+  }, [isEnded]);
 
   return (
     <>
@@ -183,11 +242,19 @@ const Home = ({ savedIds }: StaticProps) => {
             <Spinner />
           )}
         </div>
+        <BottomPlayer>
+          <Actions
+            onClickAny={handleActionClick}
+            isPlaying={howl?.playing()}
+            isRepeated={isRepeated}
+            isShuffled={isShuffled}
+          />
           <MusicSlider
             secs={secsPlayed}
             length={howl?.duration() ?? 0}
             onChange={(secs) => handleSlide(secs)}
           />
+        </BottomPlayer>
       </main>
     </>
   );
