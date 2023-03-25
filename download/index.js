@@ -14,7 +14,11 @@ const spotify = new Spotify(credentials);
 
 const songsFolderPath = "../client/public/songs";
 
+const fileExists = (trackId) =>
+  fs.existsSync(`${songsFolderPath}/${trackId}.mp3`);
+
 const download = async (trackId) => {
+  if (fileExists) return;
   const song = await spotify.downloadTrack(trackId); // Downloading goes brr brr
   fs.writeFileSync(`${songsFolderPath}/${trackId}.mp3`, song);
 };
