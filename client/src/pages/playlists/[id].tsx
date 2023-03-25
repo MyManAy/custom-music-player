@@ -25,12 +25,9 @@ const Home = ({ savedIds }: StaticProps) => {
   const playlistName = router.query["playlist_name"];
   const playlistImgSrc = router.query["playlist_img_src"];
   const givenToken = router.query["token"];
-  const [songs, setSongs] = React.useState(null as null | Song[]);
-  const [howl, setHowl] = React.useState(null as null | Howl);
-  const [src, setSrc] = React.useState(null as null | string);
-
-  // const [isPlaying, setIsPlaying] = React.useState(false);
-  const songsAvailableToDownload = React.useRef(false);
+  const [songs, setSongs] = useState(null as null | Song[]);
+  const [howl, setHowl] = useState(null as null | Howl);
+  const [currentSongId, setCurrentSongId] = useState(null as null | string);
 
   const downloadSongs = (songs: Song[]) => {
     const recentlyDownloaded = [] as string[];
@@ -57,7 +54,38 @@ const Home = ({ savedIds }: StaticProps) => {
     });
   };
 
-  React.useEffect(() => {
+  const onSoundPlay = (sound: Howl) => {
+    sound.on("play", () => {
+      const interval = setInterval(() => {
+        setSecsPlayed((secsPlayed) => secsPlayed + 1);
+      }, 1000);
+      setTimer(interval);
+      sound.on("end", () => {
+        setIsEnded(true);
+      });
+    });
+  };
+
+  const pause = () => {
+    howl?.pause();
+    clearInterval(timer as unknown as ReturnType<typeof setInterval>);
+    setTimer(null);
+  };
+
+  const playPause = () => {
+    if (howl?.playing()) {
+      pause();
+    } else {
+      howl?.play();
+    }
+  };
+
+  const handleSongSelect = (id: string) => {
+    setCurrentSongId(id);
+    if (currentSongId === id) {
+      playPause();
+    }
+  };
     if (router.isReady) {
       (async () => {
         const data = await fetchPlaylistData(
@@ -91,16 +119,18 @@ const Home = ({ savedIds }: StaticProps) => {
     }
   }, [songs]);
 
-  React.useEffect(() => {
-    if (howl) {
-      howl.stop();
-    }
+  useEffect(() => {
+    if (howl) howl.stop();
+    if (timer) clearInterval(timer);
+    if (secsPlayed > 0) setSecsPlayed(0);
     const sound = new Howl({
-      src: src ?? `/songs/${songs?.[0]?.id ?? ""}.mp3`,
+      src: currentSongId ? `/songs/${currentSongId.trim()}.mp3` : `/songs/.mp3`,
     });
+    onSoundPlay(sound);
     setHowl(sound);
     sound.play();
-  }, [src]);
+  }, [currentSongId]);
+
 
   const handleSongSelect = (id: string) => {
     setSrc(`/songs/${id}.mp3`);
