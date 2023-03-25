@@ -46,21 +46,38 @@ export default function BasicTable({ songs, onRowClick }: IAppProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {songs.map((song) => (
+          
+          <ThemeProvider theme={materialTheme} key={index}>
             <TableRow
               hover
               onClick={() => onRowClick(song.id)}
-              key={song.id}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                sx={{
+                  "&:last-child td, &:last-child th": { border: 0 },
+                  "&:hover": {
+                    backgroundColor:
+                      clickedId === song.id ? "white" : "#f5f5f5",
+                  },
+                  backgroundColor:
+                    currentlyPlayingSongId === song.id ? "#E7FFE6" : "white",
+                }}
             >
               <TableCell component="th" scope="row">
                 {song.cover ? (
-                  <Avatar src={song.cover.toString()} variant="square"></Avatar>
+                    <Avatar
+                      src={song.cover.toString()}
+                      sx={{
+                        height: "50px",
+                        width: "50px",
+                      }}
+                      variant="square"
+                    ></Avatar>
                 ) : (
                   "NO IMG"
                 )}
               </TableCell>
-              <TableCell align="left">{song.title}</TableCell>
+                <TableCell align="left" sx={{ fontSize: "20px" }}>
+                  {song.title}
+                </TableCell>
               <TableCell align="left">{song.artist}</TableCell>
               <TableCell align="left">{song.album}</TableCell>
               <TableCell align="right">
@@ -77,6 +94,8 @@ export default function BasicTable({ songs, onRowClick }: IAppProps) {
                 </TableCell>
               )}
             </TableRow>
+              
+            </ThemeProvider>
           ))}
         </TableBody>
       </Table>
