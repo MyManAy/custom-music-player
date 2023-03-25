@@ -28,6 +28,10 @@ const Home = ({ savedIds }: StaticProps) => {
   const [songs, setSongs] = useState(null as null | Song[]);
   const [howl, setHowl] = useState(null as null | Howl);
   const [currentSongId, setCurrentSongId] = useState(null as null | string);
+  const [secsPlayed, setSecsPlayed] = useState(0);
+  const [timer, setTimer] = useState(
+    null as null | ReturnType<typeof setInterval>
+  );
 
   const downloadSongs = (songs: Song[]) => {
     const recentlyDownloaded = [] as string[];
@@ -86,6 +90,12 @@ const Home = ({ savedIds }: StaticProps) => {
       playPause();
     }
   };
+  const handleSlide = (secs: number) => {
+    if (secsPlayed === 0) return;
+    setSecsPlayed(secs);
+    howl?.seek(secs);
+  };
+
   useEffect(() => {
     router.events.on("routeChangeStart", () => Howler.stop());
     return () => {
@@ -173,7 +183,11 @@ const Home = ({ savedIds }: StaticProps) => {
             <Spinner />
           )}
         </div>
-        <BottomPlayer />
+          <MusicSlider
+            secs={secsPlayed}
+            length={howl?.duration() ?? 0}
+            onChange={(secs) => handleSlide(secs)}
+          />
       </main>
     </>
   );
