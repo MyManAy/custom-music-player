@@ -1,7 +1,4 @@
-import { BottomNavigationAction, SvgIconTypeMap } from "@mui/material";
-
-import ShuffleRoundedIcon from "@mui/icons-material/ShuffleRounded";
-import { OverridableComponent } from "@mui/material/OverridableComponent";
+import { BottomNavigationAction } from "@mui/material";
 import { ComponentType } from "react";
 
 interface IconProps {
@@ -11,12 +8,15 @@ interface IconProps {
 }
 interface IAppProps {
   Icon: ComponentType<IconProps>;
+  size?: string;
+  onClick: () => void;
 }
-function BottomIcon({ Icon }: IAppProps) {
+function BottomIcon({ Icon, onClick, size = "35px" }: IAppProps) {
   return (
     <BottomNavigationAction
+      onClick={onClick}
       sx={{ top: "25%" }}
-      icon={<Icon sx={{ fontSize: "40px" }} />}
+      icon={<Icon sx={{ fontSize: size }} />}
     />
   );
 }
