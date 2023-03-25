@@ -54,3 +54,11 @@ export const convertDataToSongsFormat = (
       };
     });
 };
+
+export const getRandomSongId = (songs: Song[]): string => {
+  const randomSong = songs[
+    Math.floor(Math.random() * songs.length)
+  ] as unknown as Song;
+  if (randomSong?.mp3Loaded) return randomSong.id;
+  return getRandomSongId(songs);
+};
