@@ -86,6 +86,12 @@ const Home = ({ savedIds }: StaticProps) => {
       playPause();
     }
   };
+  useEffect(() => {
+    router.events.on("routeChangeStart", () => Howler.stop());
+    return () => {
+      router.events.off("routeChangeStart", () => Howler.stop());
+    };
+  }, [router]);
     if (router.isReady) {
       (async () => {
         const data = await fetchPlaylistData(
