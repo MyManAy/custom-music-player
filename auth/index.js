@@ -6,7 +6,7 @@ const clientSecret = "6064b32d56a24b39a74fe36e9a4a5866";
 
 const app = express();
 const port = 8888;
-const solidPort = 3000;
+let userAppPort;
 
 const redirectUri = `http://localhost:${port}/callback`;
 
@@ -23,6 +23,7 @@ const generateRandomString = (length) => {
 const stateKey = "spotify_auth_state";
 
 app.get("/login", (req, res) => {
+  userAppPort = req.query.port;
   const state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -67,7 +68,7 @@ app.get("/callback", (req, res) => {
           expires_in,
         });
 
-        res.redirect(`http://localhost:${solidPort}/?${queryParams}`);
+        res.redirect(`http://localhost:${userAppPort}/?${queryParams}`);
       } else {
         res.redirect(`/?${querystring.stringify({ error: "invalid_token" })}`);
       }

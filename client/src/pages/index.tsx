@@ -1,8 +1,8 @@
-import { NextPage } from "next";
 import router, { useRouter } from "next/router";
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Login from "~/components/Login";
-import { getAccessToken, getSpotifyClient } from "~/utils/spotify";
+import Spinner from "~/components/Spinner";
+import { getAccessToken } from "~/utils/spotify";
 
 type BooleanString = "true" | "false" | undefined | "";
 
@@ -15,15 +15,17 @@ const myFunc = async (authTimeOut: BooleanString) => {
 
 const PreLogin = () => {
   const router = useRouter();
+  const [port, setPort] = useState(null as number | null);
   const authTimeOut = router.query["auth_timed_out"] as BooleanString;
 
   useEffect(() => {
     myFunc(authTimeOut).catch(() => console.log("uh oh"));
+    setPort(Number(window.location.port));
   }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
-      <Login />
+      {port ? <Login port={port} /> : <Spinner />}
     </main>
   );
 };
