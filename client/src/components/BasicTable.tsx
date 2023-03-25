@@ -7,9 +7,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  ThemeProvider,
 } from "@mui/material";
 import Headers from "./Headers";
 import Spinner from "./Spinner";
+import { msToMinsAndSecs } from "~/utils/msToMinsAndSecs";
+import { useState } from "react";
+import materialTheme from "~/utils/materialTheme";
 
 export interface Song {
   cover: URL | null;
@@ -25,18 +29,17 @@ export interface Song {
 export interface IAppProps {
   songs: Song[];
   onRowClick: (id: string) => void;
+  currentlyPlayingSongId?: Song["id"];
 }
-
-const msToMinsAndSecs = (ms: number) => {
-  const secs = ms / 1000;
-  const mins = Math.floor(secs / 60);
-  const leftOverSecs = Math.floor(secs - mins * 60);
-  return `${mins}:${leftOverSecs.toString().padStart(2, "0")}`;
-};
 
 const headers = ["Cover", "Title", "Artist", "Album", "Date Added", "Length"];
 
-export default function BasicTable({ songs, onRowClick }: IAppProps) {
+export default function BasicTable({
+  songs,
+  onRowClick,
+  currentlyPlayingSongId,
+}: IAppProps) {
+  const [clickedId, setClickedId] = useState(null as null | string);
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -46,11 +49,16 @@ export default function BasicTable({ songs, onRowClick }: IAppProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          
-          <ThemeProvider theme={materialTheme} key={index}>
-            <TableRow
-              hover
-              onClick={() => onRowClick(song.id)}
+          {songs.map((song, index) => (
+            <ThemeProvider theme={materialTheme} key={index}>
+              <TableRow
+                onClick={() => onRowClick(song.id)}
+                onMouseDown={() => {
+                  setClickedId(song.id);
+                }}
+                onMouseUp={() => {
+                  setClickedId(null);
+                }}
                 sx={{
                   "&:last-child td, &:last-child th": { border: 0 },
                   "&:hover": {
@@ -60,9 +68,9 @@ export default function BasicTable({ songs, onRowClick }: IAppProps) {
                   backgroundColor:
                     currentlyPlayingSongId === song.id ? "#E7FFE6" : "white",
                 }}
-            >
-              <TableCell component="th" scope="row">
-                {song.cover ? (
+              >
+                <TableCell component="th" scope="row">
+                  {song.cover ? (
                     <Avatar
                       src={song.cover.toString()}
                       sx={{
@@ -71,30 +79,29 @@ export default function BasicTable({ songs, onRowClick }: IAppProps) {
                       }}
                       variant="square"
                     ></Avatar>
-                ) : (
-                  "NO IMG"
-                )}
-              </TableCell>
+                  ) : (
+                    "NO IMG"
+                  )}
+                </TableCell>
                 <TableCell align="left" sx={{ fontSize: "20px" }}>
                   {song.title}
                 </TableCell>
-              <TableCell align="left">{song.artist}</TableCell>
-              <TableCell align="left">{song.album}</TableCell>
-              <TableCell align="right">
-                {song.dateAdded.toLocaleDateString()}
-              </TableCell>
-              <TableCell align="right">
-                {msToMinsAndSecs(song.length_ms)}
-              </TableCell>
-              {song.mp3Loaded ? (
-                <></>
-              ) : (
-                <TableCell>
-                  <Spinner />
+                <TableCell align="left">{song.artist}</TableCell>
+                <TableCell align="left">{song.album}</TableCell>
+                <TableCell align="right">
+                  {song.dateAdded.toLocaleDateString()}
                 </TableCell>
-              )}
-            </TableRow>
-              
+                <TableCell align="right">
+                  {msToMinsAndSecs(song.length_ms)}
+                </TableCell>
+                {song.mp3Loaded ? (
+                  <></>
+                ) : (
+                  <TableCell>
+                    <Spinner />
+                  </TableCell>
+                )}
+              </TableRow>
             </ThemeProvider>
           ))}
         </TableBody>
