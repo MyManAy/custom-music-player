@@ -4,11 +4,14 @@ import fs from "fs";
 import { path as ffmpegPath } from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
+
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const credentials = {
-  clientId: "bf48614d72f24549881ec3aca5ac064c",
-  clientSecret: "6064b32d56a24b39a74fe36e9a4a5866",
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
 };
 const spotify = new Spotify(credentials);
 

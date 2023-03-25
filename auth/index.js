@@ -1,8 +1,9 @@
 const express = require("express");
 const querystring = require("querystring");
 const axios = require("axios");
-const clientId = "bf48614d72f24549881ec3aca5ac064c";
-const clientSecret = "6064b32d56a24b39a74fe36e9a4a5866";
+require("dotenv").config({ path: "../.env" });
+const clientId = process.env.SPOTIFY_CLIENT_ID;
+const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
 const app = express();
 const port = 8888;
