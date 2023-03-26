@@ -8,6 +8,12 @@ SET-UP:
 - cd ../download 
 - npm install
 
+- go to https://developer.spotify.com/dashboard and login
+- create a new app (name doesn't matter)
+- click edit settings and paste "http://localhost:8888/callback" into Redirect URIs
+- save and exit 
+- there is a client id and client secret on the dashboard keep track of this
+
 - create .env file in the root dir
 - populate it with proper info form spotify api as indicated by the .env.example
 
@@ -102,6 +108,7 @@ FIXES TO ERRORS:
 - if the ports that you are using are not the same as in they are not:
   http://localhost:3000/, http://localhost:8888, http://localhost:9999
     - change all the strings/variables in your code to their respective new ports
+    - change the redirect URI in your spotify dev dashboard to its new port
 
 UNSOLVED PROBLEMS:
 - when building a webpack error occurs with "too many open files"
