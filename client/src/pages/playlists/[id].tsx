@@ -15,7 +15,6 @@ import { Howl } from "howler";
 import Actions, { type Action } from "~/components/Actions";
 import MusicSlider from "~/components/MusicSlider";
 import { match, P } from "ts-pattern";
-import Image from "next/image";
 import type { Song } from "~/components/BasicTable";
 
 interface StaticProps {
@@ -235,10 +234,10 @@ const Home = ({ savedIds }: StaticProps) => {
         <div className="container flex flex-col items-center justify-center gap-12 px-4 pt-16 pb-24 ">
           <div className="flex flex-row items-center justify-center gap-6">
             <div className="h-60 w-60">
-              <Image
+              <img
                 src={playlistImgSrc as unknown as string}
                 alt="playlist image not found"
-              ></Image>
+              ></img>
             </div>
             <h1 className="text-8xl font-bold tracking-tighter text-black">
               {playlistName}

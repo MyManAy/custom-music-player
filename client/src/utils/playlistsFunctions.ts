@@ -1,5 +1,5 @@
 import { getSpotifyClient } from "./spotify";
-import type { Root as PlaylistTracksResponse } from "~/utils/getPlaylistTracksResponse";
+import type { Root as PlaylistTracksResponse } from "~/types/getPlaylistTracksResponse";
 import type { Song } from "~/components/BasicTable";
 
 export const fetchPlaylistData = async (
