@@ -12,6 +12,8 @@ SET-UP:
 - create a new app (name doesn't matter)
 - click edit settings and paste "http://localhost:8888/callback" into Redirect URIs
 - save and exit 
+- click on "users and access" and register your email and name
+- go back to dashboard
 - there is a client id and client secret on the dashboard keep track of this
 
 - create .env file in the root dir
