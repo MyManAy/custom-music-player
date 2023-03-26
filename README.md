@@ -108,6 +108,7 @@ FIXES TO ERRORS:
 - if the ports that you are using are not the same as in they are not:
   http://localhost:3000/, http://localhost:8888, http://localhost:9999
     - change all the strings/variables in your code to their respective new ports
+    - change the redirect URI in your spotify dev dashboard to its new port
 
 UNSOLVED PROBLEMS:
 - when building a webpack error occurs with "too many open files"
