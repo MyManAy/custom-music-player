@@ -21,6 +21,7 @@ function BottomPlayer({ children, selectedSongDisplay }: IAppProps) {
         left: 0,
         right: 0,
         height: "100px",
+        overflow: "hidden",
       }}
       elevation={3}
     >
