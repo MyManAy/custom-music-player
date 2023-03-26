@@ -21,7 +21,7 @@ const fileExists = (trackId) =>
   fs.existsSync(`${songsFolderPath}/${trackId}.mp3`);
 
 const download = async (trackId) => {
-  if (fileExists) return;
+  if (fileExists(trackId)) return;
   const song = await spotify.downloadTrack(trackId); // Downloading goes brr brr
   fs.writeFileSync(`${songsFolderPath}/${trackId}.mp3`, song);
 };
