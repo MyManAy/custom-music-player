@@ -2,6 +2,7 @@ import axios from "axios";
 import type { AxiosResponse } from "axios";
 
 const expressPort = 8888;
+const baseAuthUrl = `http://localhost:${expressPort}`;
 
 // Map for localStorage keys
 const LOCALSTORAGE_KEYS = {
@@ -119,8 +120,6 @@ export const refreshToken = handler(async (pageWindow: Window) => {
       console.error("No refresh token available");
       logout(pageWindow);
     }
-
-    const baseAuthUrl = `http://localhost:${expressPort}`;
 
     const axiosData: AxiosResponse = await axios.get(
       `${baseAuthUrl}/refresh_token?refresh_token=${

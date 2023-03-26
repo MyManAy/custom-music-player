@@ -50,7 +50,7 @@ app.get("/callback", (req, res) => {
     data: querystring.stringify({
       grant_type: "authorization_code",
       code: code,
-      redirect_uri: redirectUri,
+      redirect_uri: baseAuthUrl + "/callback",
     }),
     headers: {
       "content-type": "application/x-www-form-urlencoded",
@@ -69,7 +69,7 @@ app.get("/callback", (req, res) => {
           expires_in,
         });
 
-        res.redirect(`${baseAuthUrl}/?${queryParams}`);
+        res.redirect(`http://localhost:${userAppPort}/?${queryParams}`);
       } else {
         res.redirect(`/?${querystring.stringify({ error: "invalid_token" })}`);
       }
