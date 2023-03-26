@@ -279,7 +279,7 @@ const Home = ({ savedIds }: StaticProps) => {
 };
 
 export async function getServerSideProps() {
-  const res = await fetch("http://localhost:9999/getSavedIds");
+  const res = await fetch(`${baseDownloadUrl}/getSavedIds`);
   const ids = (await res.json()) as unknown as string[];
 
   return {
