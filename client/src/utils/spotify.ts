@@ -120,8 +120,10 @@ export const refreshToken = handler(async (pageWindow: Window) => {
       logout(pageWindow);
     }
 
+    const baseAuthUrl = `http://localhost:${expressPort}`;
+
     const axiosData: AxiosResponse = await axios.get(
-      `http://localhost:${expressPort}/refresh_token?refresh_token=${
+      `${baseAuthUrl}/refresh_token?refresh_token=${
         LOCALSTORAGE_VALUES.refreshToken as string
       }`
     );

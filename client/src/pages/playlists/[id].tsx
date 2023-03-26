@@ -17,6 +17,8 @@ import MusicSlider from "~/components/MusicSlider";
 import { match, P } from "ts-pattern";
 import type { Song } from "~/components/BasicTable";
 
+const baseDownloadUrl = "http://localhost:9999";
+
 interface StaticProps {
   savedIds: string[];
 }
@@ -48,7 +50,7 @@ const Home = ({ savedIds }: StaticProps) => {
     return songs.map((song) => async () => {
       if (savedIds.includes(song.id)) return;
       try {
-        await fetch(`http://localhost:9999/${song.id}`);
+        await fetch(`${baseDownloadUrl}/${song.id}`);
       } catch {
         console.log("oops again");
       } finally {

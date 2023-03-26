@@ -45,6 +45,10 @@ app.all("/:id", async (req, res) => {
   }
 });
 
-app.listen(9999, () => {
-  console.log("Download app on http://localhost:9999");
+const port = 9999;
+
+const baseDownloadUrl = `http://localhost:${port}`;
+
+app.listen(port, () => {
+  console.log(`Download app on ${baseDownloadUrl}`);
 });

@@ -9,7 +9,7 @@ const app = express();
 const port = 8888;
 let userAppPort;
 
-const redirectUri = `http://localhost:${port}/callback`;
+const baseAuthUrl = `http://localhost:${port}`;
 
 const generateRandomString = (length) => {
   let text = "";
@@ -33,7 +33,7 @@ app.get("/login", (req, res) => {
   const queryParams = querystring.stringify({
     client_id: clientId,
     response_type: "code",
-    redirect_uri: redirectUri,
+    redirect_uri: baseAuthUrl + "/callback",
     state: state,
     scope: scope,
   });
@@ -69,7 +69,7 @@ app.get("/callback", (req, res) => {
           expires_in,
         });
 
-        res.redirect(`http://localhost:${userAppPort}/?${queryParams}`);
+        res.redirect(`${baseAuthUrl}/?${queryParams}`);
       } else {
         res.redirect(`/?${querystring.stringify({ error: "invalid_token" })}`);
       }
@@ -105,5 +105,5 @@ app.get("/refresh_token", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Auth app on http://localhost:${port}`);
+  console.log(`Auth app on ${baseAuthUrl}`);
 });

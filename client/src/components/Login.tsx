@@ -4,6 +4,8 @@ interface IAppProps {
   port: number;
 }
 
+const baseAuthUrl = "http://localhost:8888";
+
 export default function App({ port }: IAppProps) {
   return (
     <div>
@@ -11,7 +13,7 @@ export default function App({ port }: IAppProps) {
       <Button
         variant="contained"
         size="large"
-        href={`http://localhost:8888/login?port=${port}`}
+        href={`${baseAuthUrl}/login?port=${port}`}
         sx={{ backgroundColor: "#1DB954" }}
       >
         Login to Spotify
