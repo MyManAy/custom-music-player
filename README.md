@@ -8,6 +8,12 @@ SET-UP:
 - cd ../download 
 - npm install
 
+- go to https://developer.spotify.com/dashboard and login
+- create a new app (name doesn't matter)
+- click edit settings and paste "http://localhost:8888/callback" into Redirect URIs
+- save and exit 
+- there is a client id and client secret on the dashboard keep track of this
+
 - create .env file in the root dir
 - populate it with proper info form spotify api as indicated by the .env.example
 
