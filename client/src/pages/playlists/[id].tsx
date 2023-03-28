@@ -75,7 +75,7 @@ const Home = ({ savedIds }: StaticProps) => {
       }, 1000);
       setTimer(interval);
       sound.on("end", () => {
-        setIsEnded(true);
+        endSong(interval);
       });
     });
   };
@@ -122,7 +122,7 @@ const Home = ({ savedIds }: StaticProps) => {
         setIsShuffled((isShuffled) => !isShuffled);
       })
       .with(P.select(), (action) => {
-        if (isRepeated || isShuffled) setIsEnded(true);
+        if (isRepeated || isShuffled) endSong(timer);
         else {
           const definedSongs = (songs as unknown as Song[]).filter(
             (song) => song.mp3Loaded
@@ -201,7 +201,7 @@ const Home = ({ savedIds }: StaticProps) => {
   }, [songs]);
 
   useEffect(() => {
-    if (howl) howl.stop();
+    if (howl) Howler.unload();
     if (timer) clearInterval(timer);
     if (secsPlayed > 0) setSecsPlayed(0);
     const sound = new Howl({
@@ -212,9 +212,8 @@ const Home = ({ savedIds }: StaticProps) => {
     sound.play();
   }, [currentSongId]);
 
-  useEffect(() => {
-    if (isEnded) {
-      clearInterval(timer as unknown as ReturnType<typeof setInterval>);
+  const endSong = (currentTimer: ReturnType<typeof setInterval> | null) => {
+    if (currentTimer) clearInterval(currentTimer);
       setSecsPlayed(0);
       setTimer(null);
       if (isShuffled)
@@ -225,10 +224,7 @@ const Home = ({ savedIds }: StaticProps) => {
         });
       else if (isRepeated)
         setCurrentSongId((id) => (id as unknown as string).concat(" "));
-
-      setIsEnded(false);
-    }
-  }, [isEnded]);
+  };
 
   return (
     <>
