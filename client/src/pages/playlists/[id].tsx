@@ -1,11 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import BasicTable from "~/components/BasicTable";
 import router, { useRouter } from "next/router";
 import Spinner from "~/components/Spinner";
-import BottomPlayer, {
-  type SelectedSongDisplay,
-} from "~/components/BottomPlayer";
+import { type SelectedSongDisplay } from "~/components/SongDisplay";
+import BottomPlayer from "~/components/BottomPlayer";
 import {
   fetchPlaylistData,
   convertDataToSongsFormat,
@@ -155,6 +155,11 @@ const Home = ({ savedIds }: StaticProps) => {
     return undefined;
   };
 
+  const onVolumeChange = (volume: number) => {
+    const percentage = volume / 100;
+    Howler.volume(percentage);
+  };
+
   useEffect(() => {
     router.events.on("routeChangeStart", () => Howler.stop());
     return () => {
@@ -257,9 +262,12 @@ const Home = ({ savedIds }: StaticProps) => {
           )}
         </div>
         <BottomPlayer
-          selectedSongDisplay={getCurrentSongDisplay(
-            currentSongId as unknown as string
-          )}
+          selectedSongDisplay={
+            getCurrentSongDisplay(
+              currentSongId?.trim() as unknown as string
+            ) as unknown as SelectedSongDisplay
+          }
+          onVolumeChange={onVolumeChange}
         >
           <Actions
             onClickAny={handleActionClick}
