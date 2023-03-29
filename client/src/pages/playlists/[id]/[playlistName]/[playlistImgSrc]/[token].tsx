@@ -83,7 +83,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
 
   const pause = () => {
     howl?.pause();
-    clearInterval(timer as unknown as NodeJS.Timer);
+    clearInterval(timer as NodeJS.Timer);
     setTimer(null);
   };
 
@@ -105,7 +105,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
   const nextSong = () => {
     if (isShuffled)
       setCurrentSongId((id) => {
-        const randomId = getRandomSongId(songs as unknown as Song[]);
+        const randomId = getRandomSongId(songs as Song[]);
         if (id === randomId) return id.concat(" ");
         return randomId;
       });
@@ -115,15 +115,13 @@ const Playlist = ({ savedIds }: StaticProps) => {
   };
 
   const makeSongGo = (action: "forward" | "previous") => {
-    const definedSongs = (songs as unknown as Song[]).filter(
-      (song) => song.mp3Loaded
-    );
+    const definedSongs = (songs as Song[]).filter((song) => song.mp3Loaded);
     const index = definedSongs.findIndex(
       ({ id }) => id === currentSongId?.trim()
     );
     const shift = action === "forward" ? 1 : -1;
     const songToGoTo = definedSongs[index + shift];
-    setCurrentSongId((songToGoTo ?? (definedSongs[0] as unknown as Song)).id);
+    setCurrentSongId((songToGoTo ?? (definedSongs[0] as Song)).id);
   };
 
   const handleSongSelect = (id: string) => {
@@ -165,7 +163,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
     const song = findCurrentSong(id);
     if (song)
       return {
-        imgSrc: song.cover as unknown as string | null,
+        imgSrc: song.cover as string | null,
         title: song.title,
         artist: song.artist,
       };
@@ -188,8 +186,8 @@ const Playlist = ({ savedIds }: StaticProps) => {
     if (router.isReady) {
       (async () => {
         const data = await fetchPlaylistData(
-          playlistId as unknown as string,
-          givenToken as unknown as string
+          playlistId as string,
+          givenToken as string
         );
         const songs = convertDataToSongsFormat(data, savedIds);
         songsAvailableToDownload.current = true;
@@ -204,7 +202,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
     if (songsAvailableToDownload.current) {
       (async () => {
         songsAvailableToDownload.current = false;
-        for (const download of downloadSongs(songs as unknown as Song[])) {
+        for (const download of downloadSongs(songs as Song[])) {
           try {
             await download();
           } catch {
@@ -245,7 +243,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
     >
       <div className="flex flex-row items-center justify-center gap-6">
         <Image
-          src={playlistImgSrc as unknown as string}
+          src={playlistImgSrc as string}
           alt="playlist image not found"
           width={240}
           height={240}
@@ -267,8 +265,8 @@ const Playlist = ({ savedIds }: StaticProps) => {
       <BottomPlayer
         selectedSongDisplay={
           getCurrentSongDisplay(
-            currentSongId?.trim() as unknown as string
-          ) as unknown as SelectedSongDisplay
+            currentSongId?.trim() as string
+          ) as SelectedSongDisplay
         }
         onVolumeChange={onVolumeChange}
       >
