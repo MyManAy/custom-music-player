@@ -1,5 +1,6 @@
 import router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import Layout from "~/components/Layout";
 import Login from "~/components/Login";
 import Spinner from "~/components/Spinner";
 import { getAccessToken } from "~/utils/spotify";
@@ -23,11 +24,7 @@ const PreLogin = () => {
     setPort(Number(window.location.port));
   }, []);
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      {port ? <Login port={port} /> : <Spinner />}
-    </main>
-  );
+  return <Layout>{port ? <Login port={port} /> : <Spinner />}</Layout>;
 };
 
 export default PreLogin;
