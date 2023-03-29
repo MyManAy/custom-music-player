@@ -89,7 +89,10 @@ const Playlist = ({ savedIds }: StaticProps) => {
 
   const playPause = () => {
     if (howl?.playing()) pause();
-    else howl?.play();
+    else {
+      howl?.seek(secsPlayed);
+      howl?.play();
+    }
   };
 
   const stopSong = () => {
