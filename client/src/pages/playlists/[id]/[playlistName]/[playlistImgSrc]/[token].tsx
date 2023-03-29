@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useRef, useState } from "react";
 import BasicTable from "~/components/BasicTable";
 import router, { useRouter } from "next/router";
@@ -15,6 +16,7 @@ import MusicSlider from "~/components/MusicSlider";
 import { match, P } from "ts-pattern";
 import type { Song } from "~/components/BasicTable";
 import Layout from "~/components/Layout";
+import Image from "next/image";
 
 const baseDownloadUrl = "http://localhost:9999";
 
@@ -23,14 +25,14 @@ interface StaticProps {
 }
 
 const redirect = async () => {
-  await router.push({ pathname: `/`, query: { auth_timed_out: true } });
+  await router.push({ pathname: `/`, query: { authTimedOut: true } });
 };
 
-const Home = ({ savedIds }: StaticProps) => {
+const Playlist = ({ savedIds }: StaticProps) => {
   const router = useRouter();
   const playlistId = router.query["id"];
-  const playlistName = router.query["playlist_name"];
-  const playlistImgSrc = router.query["playlist_img_src"];
+  const playlistName = router.query["playlistName"];
+  const playlistImgSrc = router.query["playlistImgSrc"];
   const givenToken = router.query["token"];
   const [songs, setSongs] = useState(null as null | Song[]);
   const [howl, setHowl] = useState(null as null | Howl);
@@ -230,50 +232,54 @@ const Home = ({ savedIds }: StaticProps) => {
   }, [isShuffled, isRepeated]);
 
   return (
-    <Layout>
-      <div className="pb-16">
-        <div className="flex flex-row items-center justify-center gap-6">
-          <div className="h-60 w-60">
-            <img
-              src={playlistImgSrc as unknown as string}
-              alt="playlist image not found"
-            ></img>
-          </div>
-          <h1 className="text-8xl font-bold tracking-tighter text-black">
-            {playlistName}
-          </h1>
-        </div>
-
-        {songs ? (
-          <BasicTable
-            songs={songs}
-            onRowClick={handleSongSelect}
-            currentlyPlayingSongId={currentSongId?.trim() ?? undefined}
-          />
-        ) : (
-          <Spinner />
-        )}
-        <BottomPlayer
-          selectedSongDisplay={
-            getCurrentSongDisplay(
-              currentSongId?.trim() as unknown as string
-            ) as unknown as SelectedSongDisplay
-          }
-          onVolumeChange={onVolumeChange}
-        >
-          <Actions
-            onClickAny={handleActionClick}
-            isPlaying={howl?.playing()}
-            isRepeated={isRepeated}
-            isShuffled={isShuffled}
-          />
-          <MusicSlider
-            secs={secsPlayed}
-            length={howl?.duration() ?? 0}
-            onChange={(secs) => handleSlide(secs)}
-          />
-        </BottomPlayer>
+    <Layout
+      title={
+        findCurrentSong(currentSongId?.trim())?.title ??
+        (playlistName as string)
+      }
+      tailwindPadding="px-4 pt-16 pb-32"
+    >
+      <div className="flex flex-row items-center justify-center gap-6">
+        <Image
+          src={playlistImgSrc as unknown as string}
+          alt="playlist image not found"
+          width={240}
+          height={240}
+        ></Image>
+        <h1 className="text-8xl font-bold tracking-tighter text-black">
+          {playlistName}
+        </h1>
       </div>
+
+      {songs ? (
+        <BasicTable
+          songs={songs}
+          onRowClick={handleSongSelect}
+          currentlyPlayingSongId={currentSongId?.trim() ?? undefined}
+        />
+      ) : (
+        <Spinner />
+      )}
+      <BottomPlayer
+        selectedSongDisplay={
+          getCurrentSongDisplay(
+            currentSongId?.trim() as unknown as string
+          ) as unknown as SelectedSongDisplay
+        }
+        onVolumeChange={onVolumeChange}
+      >
+        <Actions
+          onClickAny={handleActionClick}
+          isPlaying={howl?.playing()}
+          isRepeated={isRepeated}
+          isShuffled={isShuffled}
+        />
+        <MusicSlider
+          secs={secsPlayed}
+          length={howl?.duration() ?? 0}
+          onChange={(secs) => handleSlide(secs)}
+        />
+      </BottomPlayer>
     </Layout>
   );
 };
@@ -289,4 +295,4 @@ export async function getServerSideProps() {
   };
 }
 
-export default Home;
+export default Playlist;

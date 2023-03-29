@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Layout from "~/components/Layout";
@@ -17,7 +18,7 @@ const myFunc = async (authTimeOut: BooleanString) => {
 const PreLogin = () => {
   const router = useRouter();
   const [port, setPort] = useState(null as number | null);
-  const authTimeOut = router.query["auth_timed_out"] as BooleanString;
+  const authTimeOut = router.query["authTimedOut"] as BooleanString;
 
   useEffect(() => {
     myFunc(authTimeOut).catch(() => console.log("uh oh"));

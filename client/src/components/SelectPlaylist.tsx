@@ -49,7 +49,7 @@ export default function BasicSelect({ onChange, playlists }: IAppProps) {
           <MenuItem
             key={index}
             value={`${item.id}\0${item.name}\0${
-              item.images[0]?.url as unknown as string
+              item.images[0]?.url ?? "no-image"
             }`}
           >
             {item.name}

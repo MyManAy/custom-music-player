@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
 import { getSpotifyClient } from "~/utils/spotify";
 import router, { useRouter } from "next/router";
@@ -7,7 +8,7 @@ import type { RootObject as GetPlaylistResponse } from "~/types/getPlaylistRespo
 import Layout from "~/components/Layout";
 
 const redirect = async () => {
-  await router.push({ pathname: `/`, query: { auth_timed_out: true } });
+  await router.push({ pathname: `/`, query: { authTimedOut: true } });
 };
 
 const fetchPlaylistData = async (
@@ -27,12 +28,9 @@ const handlePlaylistSelect = async (
   playlistImgSrc: string
 ) => {
   await router.push({
-    pathname: `/playlists/${playlistId}`,
-    query: {
-      token: token,
-      playlist_name: playlistName,
-      playlist_img_src: playlistImgSrc,
-    },
+    pathname: `/playlists/${playlistId}/${playlistName}/${encodeURIComponent(
+      playlistImgSrc
+    )}/${token}`,
   });
 };
 
