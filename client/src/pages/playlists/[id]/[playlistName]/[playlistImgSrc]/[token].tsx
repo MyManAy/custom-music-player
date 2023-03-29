@@ -139,6 +139,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
   const handleActionClick = (action: Action) =>
     match<Action, void>(action)
       .with("playPause", () => {
+        if (!howl && songs) setCurrentSongId((songs[0] as Song).id);
         playPause();
       })
       .with("repeat", () => {
