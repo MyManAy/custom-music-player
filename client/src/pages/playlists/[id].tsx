@@ -230,12 +230,7 @@ const Home = ({ savedIds }: StaticProps) => {
   }, [isShuffled, isRepeated]);
 
   return (
-    <Layout
-      title={
-        findCurrentSong(currentSongId?.trim())?.title ??
-        (playlistName as string)
-      }
-    >
+    <Layout>
       <div className="pb-16">
         <div className="flex flex-row items-center justify-center gap-6">
           <div className="h-60 w-60">
