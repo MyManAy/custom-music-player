@@ -37,9 +37,7 @@ const Home = ({ savedIds }: StaticProps) => {
   const [howl, setHowl] = useState(null as null | Howl);
   const [currentSongId, setCurrentSongId] = useState(null as null | string);
   const [secsPlayed, setSecsPlayed] = useState(0);
-  const [timer, setTimer] = useState(
-    null as null | ReturnType<typeof setInterval>
-  );
+  const [timer, setTimer] = useState(null as null | NodeJS.Timer);
   const [isRepeated, setIsRepeated] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const songsAvailableToDownload = useRef(false);
@@ -67,41 +65,69 @@ const Home = ({ savedIds }: StaticProps) => {
     });
   };
 
-  const onSoundPlay = (sound: Howl) => {
+  const nextSongOnEnd = (sound: Howl) => {
+    sound.on("end", () => {
+      nextSong();
+    });
+  };
+
+  const startTimerOnPlay = (sound: Howl) => {
     sound.on("play", () => {
       const interval = setInterval(() => {
         setSecsPlayed((secsPlayed) => secsPlayed + 1);
       }, 1000);
       setTimer(interval);
-      sound.on("end", () => {
-        endSong(interval);
-      });
     });
   };
 
   const pause = () => {
     howl?.pause();
-    clearInterval(timer as unknown as ReturnType<typeof setInterval>);
+    clearInterval(timer as unknown as NodeJS.Timer);
     setTimer(null);
   };
 
   const playPause = () => {
-    if (howl?.playing()) {
-      pause();
-    } else {
-      howl?.play();
-    }
+    if (howl?.playing()) pause();
+    else howl?.play();
+  };
+
+  const stopSong = () => {
+    Howler.unload();
+    if (timer) clearInterval(timer);
+    setTimer(null);
+    setSecsPlayed(0);
+  };
+
+  const nextSong = () => {
+    if (isShuffled)
+      setCurrentSongId((id) => {
+        const randomId = getRandomSongId(songs as unknown as Song[]);
+        if (id === randomId) return id.concat(" ");
+        return randomId;
+      });
+    else if (isRepeated)
+      setCurrentSongId((id) => (id as unknown as string).concat(" "));
+    else makeSongGo("forward");
+  };
+
+  const makeSongGo = (action: "forward" | "previous") => {
+    const definedSongs = (songs as unknown as Song[]).filter(
+      (song) => song.mp3Loaded
+    );
+    const index = definedSongs.findIndex(
+      ({ id }) => id === currentSongId?.trim()
+    );
+    const shift = action === "forward" ? 1 : -1;
+    const songToGoTo = definedSongs[index + shift];
+    setCurrentSongId((songToGoTo ?? (definedSongs[0] as unknown as Song)).id);
   };
 
   const handleSongSelect = (id: string) => {
-    setCurrentSongId(id);
-    if (currentSongId?.trim() === id) {
-      playPause();
-    }
+    if (currentSongId?.trim() === id) playPause();
+    else setCurrentSongId(id);
   };
 
   const handleSlide = (secs: number) => {
-    if (secsPlayed === 0) return;
     setSecsPlayed(secs);
     howl?.seek(secs);
   };
@@ -109,7 +135,6 @@ const Home = ({ savedIds }: StaticProps) => {
   const handleActionClick = (action: Action) =>
     match<Action, void>(action)
       .with("playPause", () => {
-        if (secsPlayed === 0) return;
         playPause();
       })
       .with("repeat", () => {
@@ -121,20 +146,8 @@ const Home = ({ savedIds }: StaticProps) => {
         setIsShuffled((isShuffled) => !isShuffled);
       })
       .with(P.select(), (action) => {
-        if (isRepeated || isShuffled) endSong(timer);
-        else {
-          const definedSongs = (songs as unknown as Song[]).filter(
-            (song) => song.mp3Loaded
-          );
-          const index = definedSongs.findIndex(
-            ({ id }) => id === currentSongId?.trim()
-          );
-          const shift = action === "forward" ? 1 : -1;
-          const songToGoTo = definedSongs[index + shift];
-          setCurrentSongId(
-            (songToGoTo ?? (definedSongs[0] as unknown as Song)).id
-          );
-        }
+        if (isRepeated || isShuffled) nextSong();
+        else makeSongGo(action);
       })
       .exhaustive();
 
@@ -200,30 +213,22 @@ const Home = ({ savedIds }: StaticProps) => {
   }, [songs]);
 
   useEffect(() => {
-    if (howl) Howler.unload();
-    if (timer) clearInterval(timer);
-    if (secsPlayed > 0) setSecsPlayed(0);
+    stopSong();
     const sound = new Howl({
       src: currentSongId ? `/songs/${currentSongId.trim()}.mp3` : `/songs/.mp3`,
     });
-    onSoundPlay(sound);
+    startTimerOnPlay(sound);
+    nextSongOnEnd(sound);
     setHowl(sound);
     sound.play();
   }, [currentSongId]);
 
-  const endSong = (currentTimer: ReturnType<typeof setInterval> | null) => {
-    if (currentTimer) clearInterval(currentTimer);
-    setSecsPlayed(0);
-    setTimer(null);
-    if (isShuffled)
-      setCurrentSongId((id) => {
-        const randomId = getRandomSongId(songs as unknown as Song[]);
-        if (id === randomId) return id.concat(" ");
-        return randomId;
-      });
-    else if (isRepeated)
-      setCurrentSongId((id) => (id as unknown as string).concat(" "));
-  };
+  useEffect(() => {
+    if (howl) {
+      howl?.off("end");
+      nextSongOnEnd(howl);
+    }
+  }, [isShuffled, isRepeated]);
 
   return (
     <>
