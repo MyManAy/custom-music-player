@@ -214,7 +214,6 @@ const Playlist = ({ savedIds }: StaticProps) => {
   }, [songs]);
 
   useEffect(() => {
-    stopSong();
     const sound = new Howl({
       src: currentSongId ? `/songs/${currentSongId.trim()}.mp3` : `/songs/.mp3`,
     });
@@ -222,13 +221,14 @@ const Playlist = ({ savedIds }: StaticProps) => {
     nextSongOnEnd(sound);
     setHowl(sound);
     sound.play();
+    return stopSong;
   }, [currentSongId]);
 
   useEffect(() => {
-    if (howl) {
+    if (howl) nextSongOnEnd(howl);
+    return () => {
       howl?.off("end");
-      nextSongOnEnd(howl);
-    }
+    };
   }, [isShuffled, isRepeated]);
 
   return (
