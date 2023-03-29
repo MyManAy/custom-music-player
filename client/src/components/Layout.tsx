@@ -3,9 +3,15 @@ import Head from "next/head";
 interface IAppProps {
   children?: React.ReactNode;
   title?: string;
+  tailwindPadding?: string;
 }
 
-const Layout = ({ children, title }: IAppProps) => {
+const Layout = ({ children, title, tailwindPadding }: IAppProps) => {
+  const baseStyling =
+    "container flex flex-col items-center justify-center gap-12";
+  const paddedStyle = tailwindPadding
+    ? `${baseStyling} ${tailwindPadding}`
+    : `${baseStyling} px-4 py-16`;
   return (
     <>
       <Head>
@@ -14,9 +20,7 @@ const Layout = ({ children, title }: IAppProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          {children}
-        </div>
+        <div className={paddedStyle}>{children}</div>
       </main>
     </>
   );
