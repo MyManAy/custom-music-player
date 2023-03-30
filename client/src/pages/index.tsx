@@ -12,7 +12,7 @@ const myFunc = async (authTimedOut: BooleanString, accessToken: string) => {
   const token = await getAccessToken(window, Boolean(authTimedOut));
   if (token)
     router
-      .push(`/home/${accessToken === token ? accessToken : token}`)
+      .push(`/home/${accessToken !== token ? accessToken : token}`)
       .catch(() => console.log("didn't work"));
 };
 
@@ -25,7 +25,7 @@ const PreLogin = () => {
   useEffect(() => {
     myFunc(authTimedOut, accessToken).catch(() => console.log("uh oh"));
     setPort(Number(window.location.port));
-  }, []);
+  }, [router.isReady]);
 
   return <Layout>{port ? <Login port={port} /> : <Spinner />}</Layout>;
 };

@@ -1,24 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { getSpotifyClient } from "~/utils/spotify";
 import router from "next/router";
 import SelectPlaylist from "~/components/SelectPlaylist";
 import type { RootObject as GetPlaylistResponse } from "~/types/getPlaylistResponse";
 import Layout from "~/components/Layout";
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import reauthenticate from "~/utils/reauthenticate";
-
-const redirect = async () => {
-  await router.push({ pathname: `/`, query: { authTimedOut: true } });
-};
-
-const fetchPlaylistData = async (
-  token: string
-): Promise<GetPlaylistResponse> => {
-  const fetchedClient = getSpotifyClient(token);
-  const res = await fetchedClient.get(
-    `https://api.spotify.com/v1/me/playlists`
-  );
-  return res.data as GetPlaylistResponse;
-};
 
 const handlePlaylistSelect = async (
   playlistId: string,
