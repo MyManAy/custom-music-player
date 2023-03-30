@@ -14,6 +14,9 @@ const config = {
       {
         hostname: "mosaic.scdn.co",
       },
+      {
+        hostname: "i.scdn.co",
+      },
     ],
   },
 
