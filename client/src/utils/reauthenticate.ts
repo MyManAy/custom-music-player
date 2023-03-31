@@ -1,7 +1,7 @@
 const reauthenticate = {
   redirect: {
-    destination: "/?authTimedOut=true",
-    permanent: true,
+    destination: `/`,
+    permanent: false,
   },
 };
 

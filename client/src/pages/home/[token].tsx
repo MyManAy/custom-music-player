@@ -50,6 +50,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const res = await fetchedClient.get(
       `https://api.spotify.com/v1/me/playlists`
     );
+
     const data = res.data as GetPlaylistResponse;
 
     return {
