@@ -55,6 +55,12 @@ const downloadIndividual = async (songData: SongData) => {
   );
 };
 
+const downloadWithLink = (link: string, id: string) => {
+  getDownloadStream(link).pipe(
+    fs.createWriteStream(`${songsFolderPath}/${id}.webm`)
+  );
+};
+
 app.get("/getSavedIds", async (req, res) => {
   const files = fs.readdirSync(songsFolderPath);
   res.send(files.map((fileName) => fileName.replace(".webm", "")));
@@ -73,6 +79,14 @@ app.get("/download", async (req, res) => {
   if (fileExists(songData.id))
     return res.status(200).send("already downloaded");
   await downloadIndividual(songData);
+  res.status(200).send("OK");
+});
+
+app.get("/redownload/:id", async (req, res) => {
+  const id = req.params.id;
+  const link = req.query.link as string;
+
+  downloadWithLink(link, id);
   res.status(200).send("OK");
 });
 

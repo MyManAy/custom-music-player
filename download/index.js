@@ -48,6 +48,9 @@ const downloadIndividual = (songData) => __awaiter(void 0, void 0, void 0, funct
     const { link } = firstVideo;
     getDownloadStream(link).pipe(fs_1.default.createWriteStream(`${songsFolderPath}/${id}.webm`));
 });
+const downloadWithLink = (link, id) => {
+    getDownloadStream(link).pipe(fs_1.default.createWriteStream(`${songsFolderPath}/${id}.webm`));
+};
 app.get("/getSavedIds", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const files = fs_1.default.readdirSync(songsFolderPath);
     res.send(files.map((fileName) => fileName.replace(".webm", "")));
@@ -61,6 +64,12 @@ app.get("/download", (req, res) => __awaiter(void 0, void 0, void 0, function* (
     if (fileExists(songData.id))
         return res.status(200).send("already downloaded");
     yield downloadIndividual(songData);
+    res.status(200).send("OK");
+}));
+app.get("/redownload/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const link = req.query.link;
+    downloadWithLink(link, id);
     res.status(200).send("OK");
 }));
 app.listen(9999, () => {
