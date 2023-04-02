@@ -17,6 +17,7 @@ import { match, P } from "ts-pattern";
 import type { Song } from "~/components/BasicTable";
 import Layout from "~/components/Layout";
 import Image from "next/image";
+import querystring from "query-string";
 
 const baseDownloadUrl = "http://localhost:9999";
 
@@ -47,8 +48,10 @@ const Playlist = ({ savedIds }: StaticProps) => {
     const recentlyDownloaded = [] as string[];
     return songs.map((song) => async () => {
       if (savedIds.includes(song.id)) return;
+      const { title: name, artist, id } = song;
+      const params = querystring.stringify({ name, artist, id });
       try {
-        await fetch(`${baseDownloadUrl}/${song.id}`);
+        await fetch(`${baseDownloadUrl}/download?${params}`);
       } catch {
         console.log("oops again");
       } finally {
@@ -218,7 +221,9 @@ const Playlist = ({ savedIds }: StaticProps) => {
   useEffect(() => {
     stopSong();
     const sound = new Howl({
-      src: currentSongId ? `/songs/${currentSongId.trim()}.mp3` : `/songs/.mp3`,
+      src: currentSongId
+        ? `/songs/${currentSongId.trim()}.webm`
+        : `/songs/.webm`,
     });
     startTimerOnPlay(sound);
     nextSongOnEnd(sound);

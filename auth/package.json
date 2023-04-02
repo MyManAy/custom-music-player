@@ -6,7 +6,7 @@
   "scripts": {
     "start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\" \"npm run download\"",
     "server": "node index.js",
-    "client": "cd ../client && npm run start",
+    "client": "cd ../client && npm run dev",
     "download": "cd ../download && node index.js"
   },
   "author": "",
