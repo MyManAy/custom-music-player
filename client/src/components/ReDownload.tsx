@@ -6,6 +6,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import { useSnackbar } from "notistack";
 import type { Song } from "./BasicTable";
 
 interface IAppProps {
@@ -21,11 +22,10 @@ const baseDownloadUrl = "http://localhost:9999";
 const ReDownload = ({ trigger, id }: IAppProps) => {
   const [open, setOpen] = React.useState(false);
   const [link, setLink] = React.useState("");
-  const download = (youtubeLink: string) => {
+  const { enqueueSnackbar } = useSnackbar();
+  const download = async (youtubeLink: string) => {
     const encodedLink = encodeURIComponent(youtubeLink);
-    fetch(`${baseDownloadUrl}/redownload/${id}?link=${encodedLink}`).catch(
-      (err) => console.log(err)
-    );
+    return fetch(`${baseDownloadUrl}/redownload/${id}?link=${encodedLink}`);
   };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +73,19 @@ const ReDownload = ({ trigger, id }: IAppProps) => {
         <DialogActions>
           <Button
             onClick={() => {
-              download(link);
+              download(link)
+                .then(() =>
+                  enqueueSnackbar("download successful", {
+                    variant: "success",
+                    anchorOrigin: { vertical: "top", horizontal: "left" },
+                  })
+                )
+                .catch((err: string) =>
+                  enqueueSnackbar(`download failed: ${err}`, {
+                    variant: "error",
+                    anchorOrigin: { vertical: "top", horizontal: "left" },
+                  })
+                );
               handleClose();
             }}
           >

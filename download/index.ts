@@ -19,7 +19,7 @@ interface SongData {
 }
 
 const fileExists = (trackId: string) =>
-  fs.existsSync(`${songsFolderPath}/${trackId}.webm`);
+  fs.existsSync(`${songsFolderPath}${trackId}.webm`);
 
 const getSearchQuery = (name: string, artist: string) =>
   `${name} ${artist} audio`;
