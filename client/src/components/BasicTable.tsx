@@ -1,19 +1,14 @@
 import {
-  Avatar,
   Paper,
   Table,
   TableBody,
-  TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  ThemeProvider,
 } from "@mui/material";
 import Headers from "./Headers";
-import Spinner from "./Spinner";
-import { msToMinsAndSecs } from "~/utils/msToMinsAndSecs";
 import { useState } from "react";
-import materialTheme from "~/utils/materialTheme";
+import SongRow from "./SongRow";
 
 export interface Song {
   cover: URL | null;
@@ -32,7 +27,15 @@ export interface IAppProps {
   currentlyPlayingSongId?: Song["id"];
 }
 
-const headers = ["Cover", "Title", "Artist", "Album", "Date Added", "Length"];
+const headers = [
+  "Cover",
+  "Title",
+  "Artist",
+  "Album",
+  "Date Added",
+  "Length",
+  "download",
+];
 
 export default function BasicTable({
   songs,
@@ -50,59 +53,15 @@ export default function BasicTable({
         </TableHead>
         <TableBody>
           {songs.map((song, index) => (
-            <ThemeProvider theme={materialTheme} key={index}>
-              <TableRow
-                onClick={() => onRowClick(song.id)}
-                onMouseDown={() => {
-                  setClickedId(song.id);
-                }}
-                onMouseUp={() => {
-                  setClickedId(null);
-                }}
-                sx={{
-                  "&:last-child td, &:last-child th": { border: 0 },
-                  "&:hover": {
-                    backgroundColor:
-                      clickedId === song.id ? "white" : "#f5f5f5",
-                  },
-                  backgroundColor:
-                    currentlyPlayingSongId === song.id ? "#E7FFE6" : "white",
-                }}
-              >
-                <TableCell component="th" scope="row">
-                  {song.cover ? (
-                    <Avatar
-                      src={song.cover.toString()}
-                      sx={{
-                        height: "50px",
-                        width: "50px",
-                      }}
-                      variant="square"
-                    ></Avatar>
-                  ) : (
-                    "NO IMG"
-                  )}
-                </TableCell>
-                <TableCell align="left" sx={{ fontSize: "20px" }}>
-                  {song.title}
-                </TableCell>
-                <TableCell align="left">{song.artist}</TableCell>
-                <TableCell align="left">{song.album}</TableCell>
-                <TableCell align="right">
-                  {song.dateAdded.toLocaleDateString()}
-                </TableCell>
-                <TableCell align="right">
-                  {msToMinsAndSecs(song.length_ms)}
-                </TableCell>
-                {song.mp3Loaded ? (
-                  <></>
-                ) : (
-                  <TableCell>
-                    <Spinner />
-                  </TableCell>
-                )}
-              </TableRow>
-            </ThemeProvider>
+            <SongRow
+              key={index}
+              song={song}
+              onRowClick={onRowClick}
+              onMouseDown={() => setClickedId(song.id)}
+              onMouseUp={() => setClickedId(null)}
+              clickedId={clickedId}
+              currentlyPlayingSongId={currentlyPlayingSongId}
+            />
           ))}
         </TableBody>
       </Table>
