@@ -18,6 +18,7 @@ import { match, P } from "ts-pattern";
 import type { Song } from "~/components/BasicTable";
 import Layout from "~/components/Layout";
 import Image from "next/image";
+import querystring from "query-string";
 import type { GetServerSidePropsContext } from "next";
 import type { Root } from "~/types/getPlaylistTracksResponse";
 import reauthenticate from "~/utils/reauthenticate";
@@ -50,8 +51,10 @@ const Playlist = ({
     const recentlyDownloaded = [] as string[];
     return songs.map((song) => async () => {
       if (savedIds.includes(song.id)) return;
+      const { title: name, artist, id } = song;
+      const params = querystring.stringify({ name, artist, id });
       try {
-        await fetch(`${baseDownloadUrl}/${song.id}`);
+        await fetch(`${baseDownloadUrl}/download?${params}`);
       } catch {
         console.log("oops again");
       } finally {
@@ -140,7 +143,7 @@ const Playlist = ({
   const handleActionClick = (action: Action) =>
     match<Action, void>(action)
       .with("playPause", () => {
-        if (!howl && songs) setCurrentSongId((songs[0] as Song).id);
+        if (!currentSongId && songs) setCurrentSongId((songs[0] as Song).id);
         playPause();
       })
       .with("repeat", () => {
@@ -202,7 +205,9 @@ const Playlist = ({
   useEffect(() => {
     stopSong();
     const sound = new Howl({
-      src: currentSongId ? `/songs/${currentSongId.trim()}.mp3` : `/songs/.mp3`,
+      src: currentSongId
+        ? `/songs/${currentSongId.trim()}.webm`
+        : `/songs/.webm`,
     });
     startTimerOnPlay(sound);
     nextSongOnEnd(sound);

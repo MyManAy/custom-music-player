@@ -1,54 +1,77 @@
-import express from "express";
-import { Spotify } from "spotifydl-core";
-import fs from "fs";
-import { path as ffmpegPath } from "@ffmpeg-installer/ffmpeg";
-import ffmpeg from "fluent-ffmpeg";
-import cors from "cors";
-import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
-
-ffmpeg.setFfmpegPath(ffmpegPath);
-
-const credentials = {
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
-const spotify = new Spotify(credentials);
-
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const scraper_1 = require("@yimura/scraper");
+const express_1 = __importDefault(require("express"));
+const ytdl_core_1 = __importDefault(require("ytdl-core"));
+const fs_1 = __importDefault(require("fs"));
+const cors_1 = __importDefault(require("cors"));
+const youtube = new scraper_1.Scraper();
+const app = (0, express_1.default)();
+app.use((0, cors_1.default)());
 const songsFolderPath = "../client/public/songs";
-
-const fileExists = (trackId) =>
-  fs.existsSync(`${songsFolderPath}/${trackId}.mp3`);
-
-const download = async (trackId) => {
-  if (fileExists(trackId)) return;
-  const song = await spotify.downloadTrack(trackId); // Downloading goes brr brr
-  fs.writeFileSync(`${songsFolderPath}/${trackId}.mp3`, song);
+const fileExists = (trackId) => fs_1.default.existsSync(`${songsFolderPath}/${trackId}.webm`);
+const getSearchQuery = (name, artist) => `${name} ${artist} audio`;
+const getSearchResults = (name, artist) => __awaiter(void 0, void 0, void 0, function* () { return youtube.search(getSearchQuery(name, artist)); });
+const getDownloadStream = (link) => {
+    let d;
+    d = (0, ytdl_core_1.default)(link, {
+        quality: "highestaudio",
+        filter: (format) => format.container === "webm",
+    }).on("error", () => {
+        d = (0, ytdl_core_1.default)(link, {
+            quality: "highest",
+            filter: (format) => format.container === "webm",
+        }).on("error", () => {
+            d = (0, ytdl_core_1.default)(link, {
+                filter: (format) => format.container === "webm",
+            });
+        });
+    });
+    return d;
 };
-
-const app = express();
-
-app.use(cors());
-
-app.get("/getSavedIds", async (req, res) => {
-  const files = fs.readdirSync(songsFolderPath);
-  res.send(files.map((fileName) => fileName.replace(".mp3", "")));
+const downloadIndividual = (songData) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, name, artist } = songData;
+    const results = yield getSearchResults(name, artist);
+    const firstVideo = results.videos[0];
+    const { link } = firstVideo;
+    getDownloadStream(link).pipe(fs_1.default.createWriteStream(`${songsFolderPath}/${id}.webm`));
 });
-
-app.all("/:id", async (req, res) => {
-  try {
-    await download(req.params.id);
-  } catch {
-    console.log("weird err");
-  } finally {
-    res.send("OK");
-  }
-});
-
-const port = 9999;
-
-const baseDownloadUrl = `http://localhost:${port}`;
-
-app.listen(port, () => {
-  console.log(`Download app on ${baseDownloadUrl}`);
+const downloadWithLink = (link, id) => {
+    getDownloadStream(link).pipe(fs_1.default.createWriteStream(`${songsFolderPath}/${id}.webm`));
+};
+app.get("/getSavedIds", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const files = fs_1.default.readdirSync(songsFolderPath);
+    res.send(files.map((fileName) => fileName.replace(".webm", "")));
+}));
+app.get("/test", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.header("Content-Type", "application/json");
+    res.status(200).send("OK");
+}));
+app.get("/download", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const songData = req.query;
+    if (fileExists(songData.id))
+        return res.status(200).send("already downloaded");
+    yield downloadIndividual(songData);
+    res.status(200).send("OK");
+}));
+app.get("/redownload/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const link = req.query.link;
+    downloadWithLink(link, id);
+    res.status(200).send("OK");
+}));
+app.listen(9999, () => {
+    console.log("Download app on http://localhost:9999");
 });
