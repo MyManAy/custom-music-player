@@ -31,10 +31,9 @@ const GET_LOCALSTORAGE_VALUES = handler((pageWindow) => ({
  * or URL query params
  * @returns {string} A Spotify access token
  */
-export const getAccessToken = async (
-  pageWindow: Window,
-  authTimedOut: boolean
-): Promise<string | false | null | undefined> => {
+export const getAccessToken = (
+  pageWindow: Window
+): string | false | null | undefined => {
   const LOCALSTORAGE_VALUES = GET_LOCALSTORAGE_VALUES(pageWindow);
   const queryString = pageWindow.location.search;
   const urlParams = new URLSearchParams(queryString);
@@ -44,10 +43,10 @@ export const getAccessToken = async (
     [LOCALSTORAGE_KEYS.expireTime]: urlParams.get("expires_in"),
   };
   const hasError = urlParams.get("error");
-  if (authTimedOut) {
-    logout(pageWindow);
-    return await getAccessToken(pageWindow, false);
-  }
+  // if (authTimedOut) {
+  //   logout(pageWindow);
+  //   return await getAccessToken(pageWindow, false);
+  // }
 
   // If there's an error OR the token in localStorage has expired, refresh the token
   if (
@@ -55,7 +54,7 @@ export const getAccessToken = async (
     hasTokenExpired(pageWindow) ||
     LOCALSTORAGE_VALUES.accessToken === "undefined"
   ) {
-    await refreshToken(pageWindow);
+    logout(window);
   }
 
   // If there is a valid access token in localStorage, use that

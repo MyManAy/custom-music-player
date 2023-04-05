@@ -1,27 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import router, { useRouter } from "next/router";
+import router from "next/router";
 import { useEffect, useState } from "react";
 import Layout from "~/components/Layout";
 import Login from "~/components/Login";
 import Spinner from "~/components/Spinner";
 import { getAccessToken } from "~/utils/spotify";
 
-type BooleanString = "true" | "false" | undefined | "";
-
-const myFunc = async (authTimeOut: BooleanString) => {
-  const token = await getAccessToken(window, Boolean(authTimeOut));
-  if (token) {
-    router.push(`/home/${token}`).catch(() => console.log("didn't work"));
-  }
+const authorizeToHome = async () => {
+  const token = getAccessToken(window);
+  await router.push(`/home/${token as string}`);
 };
 
 const PreLogin = () => {
-  const router = useRouter();
   const [port, setPort] = useState(null as number | null);
-  const authTimeOut = router.query["authTimedOut"] as BooleanString;
 
   useEffect(() => {
-    myFunc(authTimeOut).catch(() => console.log("uh oh"));
+    authorizeToHome().catch(() => console.log("uh oh"));
     setPort(Number(window.location.port));
   }, []);
 

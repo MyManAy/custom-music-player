@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import BasicTable from "~/components/BasicTable";
-import router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import Spinner from "~/components/Spinner";
 import { type SelectedSongDisplay } from "~/components/SongDisplay";
 import BottomPlayer from "~/components/BottomPlayer";
@@ -18,31 +19,33 @@ import type { Song } from "~/components/BasicTable";
 import Layout from "~/components/Layout";
 import Image from "next/image";
 import querystring from "query-string";
+import type { GetServerSidePropsContext } from "next";
+import type { Root } from "~/types/getPlaylistTracksResponse";
+import reauthenticate from "~/utils/reauthenticate";
 
 const baseDownloadUrl = "http://localhost:9999";
 
 interface StaticProps {
   savedIds: string[];
+  data: Root;
+  playlistImgSrc: string;
+  playlistName: string;
 }
 
-const redirect = async () => {
-  await router.push({ pathname: `/`, query: { authTimedOut: true } });
-};
-
-const Playlist = ({ savedIds }: StaticProps) => {
+const Playlist = ({
+  savedIds,
+  data,
+  playlistImgSrc,
+  playlistName,
+}: StaticProps) => {
   const router = useRouter();
-  const playlistId = router.query["id"];
-  const playlistName = router.query["playlistName"];
-  const playlistImgSrc = router.query["playlistImgSrc"];
-  const givenToken = router.query["token"];
-  const [songs, setSongs] = useState(null as null | Song[]);
+  const [songs, setSongs] = useState(convertDataToSongsFormat(data, savedIds));
   const [howl, setHowl] = useState(null as null | Howl);
   const [currentSongId, setCurrentSongId] = useState(null as null | string);
   const [secsPlayed, setSecsPlayed] = useState(0);
   const [timer, setTimer] = useState(null as null | NodeJS.Timer);
   const [isRepeated, setIsRepeated] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
-  const songsAvailableToDownload = useRef(false);
 
   const downloadSongs = (songs: Song[]) => {
     const recentlyDownloaded = [] as string[];
@@ -108,7 +111,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
   const nextSong = () => {
     if (isShuffled)
       setCurrentSongId((id) => {
-        const randomId = getRandomSongId(songs as Song[]);
+        const randomId = getRandomSongId(songs);
         if (id === randomId) return id.concat(" ");
         return randomId;
       });
@@ -118,7 +121,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
   };
 
   const makeSongGo = (action: "forward" | "previous") => {
-    const definedSongs = (songs as Song[]).filter((song) => song.mp3Loaded);
+    const definedSongs = songs.filter((song) => song.mp3Loaded);
     const index = definedSongs.findIndex(
       ({ id }) => id === currentSongId?.trim()
     );
@@ -158,7 +161,7 @@ const Playlist = ({ savedIds }: StaticProps) => {
       .exhaustive();
 
   const findCurrentSong = (id?: string | null) =>
-    songs?.find((item) => item.id === id);
+    songs.find((item) => item.id === id);
 
   const getCurrentSongDisplay = (
     id: string
@@ -179,44 +182,25 @@ const Playlist = ({ savedIds }: StaticProps) => {
   };
 
   useEffect(() => {
+    (async () => {
+      for (const download of downloadSongs(songs)) {
+        try {
+          await download();
+        } catch {
+          console.log("oops");
+        }
+      }
+    })().catch((err) => {
+      console.log(err);
+    });
+  }, []);
+
+  useEffect(() => {
     router.events.on("routeChangeStart", () => Howler.stop());
     return () => {
       router.events.off("routeChangeStart", () => Howler.stop());
     };
   }, [router]);
-
-  useEffect(() => {
-    if (router.isReady) {
-      (async () => {
-        const data = await fetchPlaylistData(
-          playlistId as string,
-          givenToken as string
-        );
-        const songs = convertDataToSongsFormat(data, savedIds);
-        songsAvailableToDownload.current = true;
-        setSongs(songs);
-      })().catch((err) => {
-        redirect().catch(() => console.log(err));
-      });
-    }
-  }, [router.isReady]);
-
-  useEffect(() => {
-    if (songsAvailableToDownload.current) {
-      (async () => {
-        songsAvailableToDownload.current = false;
-        for (const download of downloadSongs(songs as Song[])) {
-          try {
-            await download();
-          } catch {
-            console.log("oops");
-          }
-        }
-      })().catch((err) => {
-        console.log(err);
-      });
-    }
-  }, [songs]);
 
   useEffect(() => {
     stopSong();
@@ -240,19 +224,20 @@ const Playlist = ({ savedIds }: StaticProps) => {
 
   return (
     <Layout
-      title={
-        findCurrentSong(currentSongId?.trim())?.title ??
-        (playlistName as string)
-      }
+      title={findCurrentSong(currentSongId?.trim())?.title ?? playlistName}
       tailwindPadding="px-4 pt-16 pb-32"
     >
       <div className="flex flex-row items-center justify-center gap-6">
-        <Image
-          src={playlistImgSrc as string}
-          alt="playlist image not found"
-          width={240}
-          height={240}
-        ></Image>
+        {playlistImgSrc !== "no-image" ? (
+          <Image
+            src={playlistImgSrc}
+            alt="playlist image not found"
+            width={240}
+            height={240}
+          ></Image>
+        ) : (
+          <></>
+        )}
         <h1 className="text-8xl font-bold tracking-tighter text-black">
           {playlistName}
         </h1>
@@ -291,15 +276,29 @@ const Playlist = ({ savedIds }: StaticProps) => {
   );
 };
 
-export async function getServerSideProps() {
-  const res = await fetch(`${baseDownloadUrl}/getSavedIds`);
-  const ids = (await res.json()) as unknown as string[];
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  try {
+    const token = context.params!.token as string;
+    const id = context.params!.id as string;
+    const playlistName = context.params!.playlistName as string;
+    const playlistImgSrc = context.params!.playlistImgSrc as string;
 
-  return {
-    props: {
-      savedIds: ids,
-    },
-  };
+    const res = await fetch(`${baseDownloadUrl}/getSavedIds`);
+    const savedIds = (await res.json()) as unknown as string[];
+
+    const data = await fetchPlaylistData(id, token);
+
+    return {
+      props: {
+        data,
+        savedIds,
+        playlistName,
+        playlistImgSrc,
+      },
+    };
+  } catch {
+    return reauthenticate;
+  }
 }
 
 export default Playlist;
