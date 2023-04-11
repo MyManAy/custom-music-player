@@ -85,7 +85,6 @@ app.get("/download", async (req, res) => {
 app.get("/redownload/:id", async (req, res) => {
   const id = req.params.id;
   const link = req.query.link as string;
-
   downloadWithLink(link, id);
   res.status(200).send("OK");
 });

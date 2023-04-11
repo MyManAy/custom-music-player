@@ -21,7 +21,7 @@ const youtube = new scraper_1.Scraper();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 const songsFolderPath = "../client/public/songs";
-const fileExists = (trackId) => fs_1.default.existsSync(`${songsFolderPath}/${trackId}.webm`);
+const fileExists = (trackId) => fs_1.default.existsSync(`${songsFolderPath}${trackId}.webm`);
 const getSearchQuery = (name, artist) => `${name} ${artist} audio`;
 const getSearchResults = (name, artist) => __awaiter(void 0, void 0, void 0, function* () { return youtube.search(getSearchQuery(name, artist)); });
 const getDownloadStream = (link) => {
